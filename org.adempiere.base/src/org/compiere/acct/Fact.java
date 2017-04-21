@@ -787,7 +787,11 @@ public final class Fact
 				if(dl.isOverwriteUser1())				
 					factLine.setUser1_ID(dl.getUser1_ID());
 				if(dl.isOverwriteUser2())				
-					factLine.setUser2_ID(dl.getUser2_ID());					
+					factLine.setUser2_ID(dl.getUser2_ID());
+				// iDempiereConsulting __ 21/04/2017 -- Overwrite del PostingType sul GL
+				if(dl.get_ValueAsBoolean("LIT_OverwritePostingType"))
+					factLine.setPostingType(dl.get_ValueAsString("PostingType"));
+				// iDempiereConsulting __ 21/04/2017 -- 
 				// F3P end
 				//
 				if (dl.getAmt().signum() < 0)
