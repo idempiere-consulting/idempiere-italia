@@ -141,7 +141,8 @@ public class WInOutGen extends InOutGen implements IFormController, EventListene
 				DisplayType.List, Env.getLanguage(Env.getCtx()), "DocAction", 135 /* _Document Action */,
 				false, "AD_Ref_List.Value IN ('CO','PR','--')");
 		docAction = new WTableDirEditor("DocAction", true, false, true,docActionL);
-		docAction.setValue(DocAction.ACTION_Complete);
+		//docAction.setValue(DocAction.ACTION_Complete); --Patch_CNET__30/06/2016
+		docAction.setValue(DocAction.ACTION_Prepare); //--Patch_CNET__30/06/2016
 		// docAction.addValueChangeListener(this); // IDEMPIERE-768
 		//	C_Order.C_BPartner_ID
 		MLookup bpL = MLookupFactory.get (Env.getCtx(), form.getWindowNo(), 0, 2762, DisplayType.Search);

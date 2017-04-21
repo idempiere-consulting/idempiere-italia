@@ -158,11 +158,13 @@ public class MDistribution extends X_GL_Distribution
 		if (retValue != null)
 			return retValue;
 		final String whereClause = "Account_ID=?";
-
-		List<MDistribution> list = new Query(ctx,I_GL_Distribution.Table_Name,whereClause,null)
-		.setParameters(Account_ID)
-		.list();
-		//
+		// iDempiereConsulting __ 21/04/2017 -- Per controllo 'Any Account' flaggato
+//		List<MDistribution> list = new Query(ctx,I_GL_Distribution.Table_Name,whereClause,null)
+//		.setParameters(Account_ID)
+//		.list();
+		List<MDistribution> list = new Query(ctx,I_GL_Distribution.Table_Name,"",null)
+				.list();
+		// iDempiereConsulting __ 21/04/2017 --
 		retValue = new MDistribution[list.size ()];
 		list.toArray (retValue);
 		s_accounts.put(key, retValue);
