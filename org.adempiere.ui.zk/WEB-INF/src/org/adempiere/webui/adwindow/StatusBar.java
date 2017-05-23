@@ -161,7 +161,12 @@ public class StatusBar extends Panel implements EventListener<Event>
 		
     	String labelText = buildLabelText(m_statusText);
     	if (error) {
-    		Clients.showNotification(buildNotificationText(m_statusText), "error", findTabpanel(this), "top_left", 3500, true);
+    		// iDempiereConsulting __ 23/05/2017 -- Messaggi di Errore - popup completa e scompare con chiusura manuale  
+    		
+    		//Clients.showNotification(buildNotificationText(m_statusText), "error", findTabpanel(this), "top_left", 3500, true);
+    		Clients.showNotification(m_statusText, "error", findTabpanel(this), "top_left", 0, true);
+    		
+    		// iDempiereConsulting __ 23/05/2017
     	}
     	Label label = new Label(labelText);
     	messageContainer.setSclass(error ? "docstatus-error" : "docstatus-normal");
