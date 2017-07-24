@@ -854,29 +854,36 @@ public class CalloutOrder extends CalloutEngine
 					(M_Warehouse_ID, M_Product_ID.intValue(), M_AttributeSetInstance_ID, null);
 				if (available == null)
 					available = Env.ZERO;
-				if (available.signum() == 0)
-					mTab.fireDataStatusEEvent ("NoQtyAvailable", "0", false);
-				else if (available.compareTo(QtyOrdered) < 0)
-					mTab.fireDataStatusEEvent ("InsufficientQtyAvailable", available.toString(), false);
-				else
+				
+				// iDempiereConsulting __ 23/05/2017 -- Rimozione del messaggio "NoQtyAvailable"
+				String checkAvailable = MSysConfig.getValue("LIT_DisableMessageNoInventory", Env.getAD_Client_ID(ctx));
+				if(checkAvailable==null || (checkAvailable!=null && !checkAvailable.trim().equals("Y")))
 				{
-					Integer C_OrderLine_ID = (Integer)mTab.getValue("C_OrderLine_ID");
-					if (C_OrderLine_ID == null)
-						C_OrderLine_ID = new Integer(0);
-					BigDecimal notReserved = MOrderLine.getNotReserved(ctx,
-						M_Warehouse_ID, M_Product_ID, M_AttributeSetInstance_ID,
-						C_OrderLine_ID.intValue());
-					if (notReserved == null)
-						notReserved = Env.ZERO;
-					BigDecimal total = available.subtract(notReserved);
-					if (total.compareTo(QtyOrdered) < 0)
+					if (available.signum() == 0)
+						mTab.fireDataStatusEEvent ("NoQtyAvailable", "0", false);
+					else if (available.compareTo(QtyOrdered) < 0)
+						mTab.fireDataStatusEEvent ("InsufficientQtyAvailable", available.toString(), false);
+					else
 					{
-						String info = Msg.parseTranslation(ctx, "@QtyAvailable@=" + available
-							+ " - @QtyNotReserved@=" + notReserved + " = " + total);
-						mTab.fireDataStatusEEvent ("InsufficientQtyAvailable",
-							info, false);
+						Integer C_OrderLine_ID = (Integer)mTab.getValue("C_OrderLine_ID");
+						if (C_OrderLine_ID == null)
+							C_OrderLine_ID = new Integer(0);
+						BigDecimal notReserved = MOrderLine.getNotReserved(ctx,
+							M_Warehouse_ID, M_Product_ID, M_AttributeSetInstance_ID,
+							C_OrderLine_ID.intValue());
+						if (notReserved == null)
+							notReserved = Env.ZERO;
+						BigDecimal total = available.subtract(notReserved);
+						if (total.compareTo(QtyOrdered) < 0)
+						{
+							String info = Msg.parseTranslation(ctx, "@QtyAvailable@=" + available
+								+ " - @QtyNotReserved@=" + notReserved + " = " + total);
+							mTab.fireDataStatusEEvent ("InsufficientQtyAvailable",
+								info, false);
+						}
 					}
 				}
+				// iDempiereConsulting __ 23/05/2017 -- 
 			}
 		}
 		//
@@ -1340,30 +1347,37 @@ public class CalloutOrder extends CalloutEngine
 					(M_Warehouse_ID, M_Product_ID, M_AttributeSetInstance_ID, null);
 				if (available == null)
 					available = Env.ZERO;
-				if (available.signum() == 0)
-					mTab.fireDataStatusEEvent ("NoQtyAvailable", "0", false);
-				else if (available.compareTo(QtyOrdered) < 0)
-					mTab.fireDataStatusEEvent ("InsufficientQtyAvailable", available.toString(), false);
-				else
+				
+				// iDempiereConsulting __ 23/05/2017 -- Rimozione del messaggio "NoQtyAvailable"
+				String checkAvailable = MSysConfig.getValue("LIT_DisableMessageNoInventory", Env.getAD_Client_ID(ctx));
+				if(checkAvailable==null || (checkAvailable!=null && !checkAvailable.trim().equals("Y")))
 				{
-					Integer C_OrderLine_ID = (Integer)mTab.getValue("C_OrderLine_ID");
-					if (C_OrderLine_ID == null)
-						C_OrderLine_ID = new Integer(0);
-					BigDecimal notReserved = MOrderLine.getNotReserved(ctx,
-						M_Warehouse_ID, M_Product_ID, M_AttributeSetInstance_ID,
-						C_OrderLine_ID.intValue());
-					if (notReserved == null)
-						notReserved = Env.ZERO;
-					BigDecimal total = available.subtract(notReserved);
-					if (total.compareTo(QtyOrdered) < 0)
+					if (available.signum() == 0)
+						mTab.fireDataStatusEEvent ("NoQtyAvailable", "0", false);
+					else if (available.compareTo(QtyOrdered) < 0)
+						mTab.fireDataStatusEEvent ("InsufficientQtyAvailable", available.toString(), false);
+					else
 					{
-						StringBuilder msgpts = new StringBuilder("@QtyAvailable@=").append(available)
-								.append("  -  @QtyNotReserved@=").append(notReserved).append("  =  ").append(total);
-						String info = Msg.parseTranslation(ctx, msgpts.toString());
-						mTab.fireDataStatusEEvent ("InsufficientQtyAvailable",
-							info, false);
+						Integer C_OrderLine_ID = (Integer)mTab.getValue("C_OrderLine_ID");
+						if (C_OrderLine_ID == null)
+							C_OrderLine_ID = new Integer(0);
+						BigDecimal notReserved = MOrderLine.getNotReserved(ctx,
+							M_Warehouse_ID, M_Product_ID, M_AttributeSetInstance_ID,
+							C_OrderLine_ID.intValue());
+						if (notReserved == null)
+							notReserved = Env.ZERO;
+						BigDecimal total = available.subtract(notReserved);
+						if (total.compareTo(QtyOrdered) < 0)
+						{
+							StringBuilder msgpts = new StringBuilder("@QtyAvailable@=").append(available)
+									.append("  -  @QtyNotReserved@=").append(notReserved).append("  =  ").append(total);
+							String info = Msg.parseTranslation(ctx, msgpts.toString());
+							mTab.fireDataStatusEEvent ("InsufficientQtyAvailable",
+								info, false);
+						}
 					}
 				}
+				// iDempiereConsulting __ 23/05/2017 --
 			}
 		}
 		//

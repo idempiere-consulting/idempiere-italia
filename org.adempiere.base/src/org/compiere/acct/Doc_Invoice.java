@@ -530,6 +530,9 @@ public class Doc_Invoice extends Doc
 		//  ** API
 		else if (getDocumentType().equals(DOCTYPE_APInvoice))
 		{
+			// iDempiereConsulting __ 17/05/2017 -- Gestione IVA indetraibile
+			BigDecimal aggregate = Env.ZERO;
+			//
 			BigDecimal grossAmt = getAmount(Doc.AMTTYPE_Gross);
 			BigDecimal serviceAmt = Env.ZERO;
 
@@ -539,8 +542,19 @@ public class Doc_Invoice extends Doc
 			//  TaxCredit       DR
 			for (int i = 0; i < m_taxes.length; i++)
 			{
-				FactLine tl = fact.createLine(null, m_taxes[i].getAccount(m_taxes[i].getAPTaxType(), as),
-					getC_Currency_ID(), m_taxes[i].getAmount(), null);
+				// iDempiereConsulting __ 17/05/2017 -- Gestione IVA indetraibile
+				FactLine tl = null;
+				if(m_taxes[i].getAPTaxType()==DocTax.ACCTTYPE_TaxExpense)
+				{
+					aggregate =  m_taxes[i].getAmount();
+				}
+				else
+				{
+					tl = fact.createLine(null, m_taxes[i].getAccount(m_taxes[i].getAPTaxType(), as),
+							getC_Currency_ID(), m_taxes[i].getAmount(), null);
+				}
+				// iDempiereConsulting __ 17/05/2017 --
+				
 				if (tl != null)
 					tl.setC_Tax_ID(m_taxes[i].getC_Tax_ID());
 			}
@@ -582,6 +596,10 @@ public class Doc_Invoice extends Doc
 									getC_Currency_ID(), null, dAmt);
 						}
 					}
+					// iDempiereConsulting __ 17/05/2017 -- Gestione IVA indetraibile
+					amt = amt.add(aggregate);
+					//
+					
 					fact.createLine (line, expense,
 						getC_Currency_ID(), amt, null);
 					if (!line.isItem())
@@ -623,7 +641,7 @@ public class Doc_Invoice extends Doc
 			{
 				serviceAmt = getAmount(Doc.AMTTYPE_Gross);
 				grossAmt = Env.ZERO;
-			}
+			}			
 			if (grossAmt.signum() != 0)
 				fact.createLine(null, MAccount.get(getCtx(), payables_ID),
 					getC_Currency_ID(), null, grossAmt);

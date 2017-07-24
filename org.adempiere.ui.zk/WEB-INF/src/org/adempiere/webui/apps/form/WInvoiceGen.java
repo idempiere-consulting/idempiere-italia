@@ -144,7 +144,8 @@ public class WInvoiceGen extends InvoiceGen implements IFormController, EventLis
 				DisplayType.List, Env.getLanguage(Env.getCtx()), "DocAction", 135 /* _Document Action */,
 				false, "AD_Ref_List.Value IN ('CO','PR')");
 		docAction = new WTableDirEditor("DocAction", true, false, true,docActionL);
-		docAction.setValue(DocAction.ACTION_Complete);
+		//docAction.setValue(DocAction.ACTION_Complete); --Patch_CNET__30/06/2016
+		docAction.setValue(DocAction.ACTION_Prepare); //--Patch_CNET__30/06/2016
 		// docAction.addValueChangeListener(this); // IDEMPIERE-768
 
 //      Document Type Sales Order/Vendor RMA
