@@ -922,6 +922,7 @@ public class MOrderLine extends X_C_OrderLine
 					MAttributeSet mas = MAttributeSet.get(getCtx(), M_AttributeSet_ID);
 					isInstance = mas.isInstanceAttribute();
 				}
+				/*
 				//	Max
 				if (isInstance)
 				{
@@ -941,7 +942,7 @@ public class MOrderLine extends X_C_OrderLine
 						log.saveError("QtyInsufficient", "=" + qty); 
 						return false;
 					}
-				}
+				} */
 			}	//	stocked
 		}	//	SO instance
 		
