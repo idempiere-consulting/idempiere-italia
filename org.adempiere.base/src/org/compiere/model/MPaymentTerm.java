@@ -19,15 +19,19 @@ package org.compiere.model;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
+import org.compiere.util.TimeUtil;
+import org.compiere.util.UtilCal_Ord_Inv;
 
 
 /**
@@ -202,12 +206,12 @@ public class MPaymentTerm extends X_C_PaymentTerm
 			log.log(Level.SEVERE, "No valid invoice - " + invoice);
 			return false;
 		}
-
-		// do not apply payment term if the invoice is not on credit or if total is zero
-		if ( (! (MInvoice.PAYMENTRULE_OnCredit.equals(invoice.getPaymentRule()) || MInvoice.PAYMENTRULE_DirectDebit.equals(invoice.getPaymentRule())))
-			|| invoice.getGrandTotal().signum() == 0)
-			return false;
-			
+		// iDempiereConsulting __ 24/07/2017 -- No control   
+//		// do not apply payment term if the invoice is not on credit or if total is zero
+//		if ( (! (MInvoice.PAYMENTRULE_OnCredit.equals(invoice.getPaymentRule()) || MInvoice.PAYMENTRULE_DirectDebit.equals(invoice.getPaymentRule())))
+//			|| invoice.getGrandTotal().signum() == 0)
+//			return false;
+		// iDempiereConsulting __ 24/07/2017   
 		if (!isValid())
 			return applyNoSchedule (invoice);
 		//
@@ -241,17 +245,100 @@ public class MPaymentTerm extends X_C_PaymentTerm
 	 */
 	private boolean applySchedule (MInvoice invoice)
 	{
+		//@ iDempiereConsulting __ 24/07/2017 -- control and set for invoice date + control payment Term....
 		deleteInvoicePaySchedule (invoice.getC_Invoice_ID(), invoice.get_TrxName());
 		//	Create Schedule
 		MInvoicePaySchedule ips = null;
+		
+		// iDempiereConsulting __ 31/07/2017 -- Payment term check 'VAT on First due date'
 		BigDecimal remainder = invoice.getGrandTotal();
+		BigDecimal totalTax = BigDecimal.ZERO;
+		BigDecimal tmp_GrandTotal = remainder;
+		if(get_ValueAsBoolean("LIT_VAT1")){
+			List<MInvoiceTax> list = new Query(getCtx(), I_C_InvoiceTax.Table_Name, MInvoiceTax.COLUMNNAME_C_Invoice_ID+"=?", get_TrxName())
+											.setParameters(invoice.getC_Invoice_ID())
+											.list();
+			Function<MInvoiceTax, BigDecimal> totalMapper = invoiceTax -> invoiceTax.getTaxAmt();
+			totalTax = list.stream()
+			        .map(totalMapper)
+			        .reduce(BigDecimal.ZERO, BigDecimal::add);
+			
+			invoice.setGrandTotal(invoice.getTotalLines());
+		}
+		// ---
+		// iDempiereConsulting __ 31/07/2017
+		
+		Timestamp dueDate = null;
+		Timestamp discountDate = null;
 		for (int i = 0; i < m_schedule.length; i++)
 		{
 			ips = new MInvoicePaySchedule (invoice, m_schedule[i]);
-			ips.saveEx(invoice.get_TrxName());
+			
+			Timestamp dateFrom = null;
+			// iDempiereConsulting __ 24/07/2017 -- If the paymentTerm plug-in is installed, consider these new fields for the new payment terms management.
+			/*	
+				"BD";"Before Delivery"
+				"AI";"After Invoice"
+				"AD";"After Delivery"
+				"AO";"After Order"
+			*/
+			if(ips.get_ColumnIndex("LIT_PaymentTermType")>-1 && ips.get_ColumnIndex("PaymentRule")>-1){
+				String payTermType = m_schedule[i].get_ValueAsString("LIT_PaymentTermType");
+				if(payTermType.trim().length()>0){
+					ips.set_ValueOfColumn("LIT_PaymentTermType", payTermType);
+					
+					if (payTermType.equals("AO"))
+						dateFrom = invoice.getC_Order().getDateAcct();//Date completed order
+					else if(payTermType.equals("AI"))
+						dateFrom = invoice.getDateInvoiced();
+				}
+				else
+					dateFrom = invoice.getDateInvoiced();
+				String payRule = m_schedule[i].get_ValueAsString("PaymentRule");
+				if(payRule.trim().length()>0)
+					ips.set_ValueOfColumn("PaymentRule", payRule);
+			}
+			// ---
+			// iDempiereConsulting __ 24/07/2017
+
+			//	Dates		
+			dueDate = UtilCal_Ord_Inv.calculateDueDate(dateFrom, invoice.getC_BPartner_ID(), m_schedule[i]);	
+			ips.setDueDate (dueDate);
+			//
+			discountDate = TimeUtil.addDays(dateFrom, m_schedule[i].getDiscountDays());
+			ips.setDiscountDate (discountDate);
+			
+			// iDempiereConsulting __ 31/07/2017 -- Payment term check 'VAT on First due date'
+			if(get_ValueAsBoolean("LIT_VAT1") && i==0){
+				ips.setDueAmt(ips.getDueAmt().add(totalTax));
+			}
+			// ---
+			// iDempiereConsulting __ 31/07/2017
+			
+			ips.save(invoice.get_TrxName());
 			if (log.isLoggable(Level.FINE)) log.fine(ips.toString());
 			remainder = remainder.subtract(ips.getDueAmt());
+			
+			dueDate = null;
+			discountDate = null;
 		}	//	for all schedules
+		
+//		deleteInvoicePaySchedule (invoice.getC_Invoice_ID(), invoice.get_TrxName());
+//		//	Create Schedule
+//		MInvoicePaySchedule ips = null;
+//		BigDecimal remainder = invoice.getGrandTotal();
+//		for (int i = 0; i < m_schedule.length; i++)
+//		{
+//			ips = new MInvoicePaySchedule (invoice, m_schedule[i]);
+//			ips.saveEx(invoice.get_TrxName());
+//			if (log.isLoggable(Level.FINE)) log.fine(ips.toString());
+//			remainder = remainder.subtract(ips.getDueAmt());
+//		}	//	for all schedules
+		
+		invoice.setGrandTotal(tmp_GrandTotal);
+		//@ iDempiereConsulting __ 24/07/2017
+		
+		
 		//	Remainder - update last
 		if (remainder.compareTo(Env.ZERO) != 0 && ips != null)
 		{
@@ -311,12 +398,13 @@ public class MPaymentTerm extends X_C_PaymentTerm
 			log.log(Level.SEVERE, "No valid order - " + order);
 			return false;
 		}
+		// iDempiereConsulting __ 24/07/2017 -- No control   
+//		// do not apply payment term if the order is not on credit or if total is zero
+//		if ( (! (MOrder.PAYMENTRULE_OnCredit.equals(order.getPaymentRule()) || MOrder.PAYMENTRULE_DirectDebit.equals(order.getPaymentRule())) )
+//			|| order.getGrandTotal().signum() == 0)
+//			return false;
+		// iDempiereConsulting __ 24/07/2017 
 		
-		// do not apply payment term if the order is not on credit or if total is zero
-		if ( (! (MOrder.PAYMENTRULE_OnCredit.equals(order.getPaymentRule()) || MOrder.PAYMENTRULE_DirectDebit.equals(order.getPaymentRule())) )
-			|| order.getGrandTotal().signum() == 0)
-			return false;
-			
 		if (!isValid())
 			return applyOrderNoSchedule (order);
 		//
@@ -350,13 +438,59 @@ public class MPaymentTerm extends X_C_PaymentTerm
 	 */
 	private boolean applyOrderSchedule (MOrder order)
 	{
+		//@ iDempiereConsulting __ 24/07/2017 -- Check in payment Term
 		deleteOrderPaySchedule (order.getC_Order_ID(), order.get_TrxName());
 		//	Create Schedule
 		MOrderPaySchedule ops = null;
+		// iDempiereConsulting __ 31/07/2017 -- Payment term check 'VAT on First due date'
 		BigDecimal remainder = order.getGrandTotal();
+		BigDecimal totalTax = BigDecimal.ZERO;
+		BigDecimal tmp_GrandTotal = remainder;
+		if(get_ValueAsBoolean("LIT_VAT1")){
+			List<MOrderTax> list = new Query(getCtx(), I_C_OrderTax.Table_Name, MOrderTax.COLUMNNAME_C_Order_ID+"=?", get_TrxName())
+											.setParameters(order.getC_Order_ID())
+											.list();
+			Function<MOrderTax, BigDecimal> totalMapper = orderTax -> orderTax.getTaxAmt();
+			totalTax = list.stream()
+			        .map(totalMapper)
+			        .reduce(BigDecimal.ZERO, BigDecimal::add);
+			
+			order.setGrandTotal(order.getTotalLines());
+		}
+		// ---
+		// iDempiereConsulting __ 31/07/2017
+		
 		for (int i = 0; i < m_schedule.length; i++)
 		{
 			ops = new MOrderPaySchedule (order, m_schedule[i]);
+
+			//Dates
+			// iDempiereConsulting __ 24/07/2017 -- Calculate fixed date + new payment terms management.
+			Timestamp date = order.getDateAcct();
+			if(date==null)
+				date = order.getDateOrdered();
+			Timestamp dueDate = UtilCal_Ord_Inv.calculateDueDate(date, order.getC_BPartner_ID(), m_schedule[i]);
+			ops.setDueDate (dueDate);
+
+			// --- If the paymentTerm plug-in is installed, consider these new fields for the new payment terms management.
+			if(ops.get_ColumnIndex("LIT_PaymentTermType")>-1 && ops.get_ColumnIndex("PaymentRule")>-1){
+				String payTermType = m_schedule[i].get_ValueAsString("LIT_PaymentTermType");
+				if(payTermType.trim().length()>0)
+					ops.set_ValueOfColumn("LIT_PaymentTermType", payTermType);
+				String payRule = m_schedule[i].get_ValueAsString("PaymentRule");
+				if(payRule.trim().length()>0)
+					ops.set_ValueOfColumn("PaymentRule", payRule);
+			}
+			// ---
+			// iDempiereConsulting __ 24/07/2017
+			
+			// iDempiereConsulting __ 31/07/2017 -- Payment term check 'VAT on First due date'
+			if(get_ValueAsBoolean("LIT_VAT1") && i==0){
+				ops.setDueAmt(ops.getDueAmt().add(totalTax));
+			}
+			// ---
+			// iDempiereConsulting __ 31/07/2017
+
 			ops.saveEx(order.get_TrxName());
 			if (log.isLoggable(Level.FINE)) log.fine(ops.toString());
 			remainder = remainder.subtract(ops.getDueAmt());
@@ -368,10 +502,13 @@ public class MPaymentTerm extends X_C_PaymentTerm
 			ops.saveEx(order.get_TrxName());
 			if (log.isLoggable(Level.FINE)) log.fine("Remainder=" + remainder + " - " + ops);
 		}
-		
+
 		//	updateOrder
 		if (order.getC_PaymentTerm_ID() != getC_PaymentTerm_ID())
 			order.setC_PaymentTerm_ID(getC_PaymentTerm_ID());
+		
+		order.setGrandTotal(tmp_GrandTotal);
+		//@ iDempiereConsulting __ 24/07/2017
 		return order.validatePaySchedule();
 	}	//	applyOrderSchedule
 
