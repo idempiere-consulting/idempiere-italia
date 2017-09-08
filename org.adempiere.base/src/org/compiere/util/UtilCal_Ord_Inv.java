@@ -31,6 +31,18 @@ public class UtilCal_Ord_Inv {
 		int    numbFixedDate = 0;
 		int    tempYear = 0;
 		
+		//se nel caso fosse il primo del mese, per il bug del "fine mese esatto", si aggiunge +1
+		if(fixedDate.startsWith("FM")){
+			long timestamp = date.getTime();
+			Calendar calTmp = Calendar.getInstance();
+			calTmp.setTimeInMillis(timestamp);
+			if(calTmp.get(Calendar.DAY_OF_MONTH)==1){
+				calTmp.add(Calendar.DAY_OF_MONTH, 1);
+				date = new Timestamp (calTmp.getTimeInMillis());
+			}
+		}
+		//
+		
 		if(ps.get_ValueAsInt("NetMonths")>0)
 			dateCalculate = TimeUtil.addMonths(date, ps.get_ValueAsInt("NetMonths"));
 		else
