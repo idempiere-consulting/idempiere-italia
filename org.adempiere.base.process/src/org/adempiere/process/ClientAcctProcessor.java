@@ -38,10 +38,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.acct.DocManager;
 import org.compiere.model.MAcctSchema;
 import org.compiere.model.MClient;
 import org.compiere.model.MCost;
+import org.compiere.model.MInfoWindow;
+import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 import org.compiere.util.AdempiereUserError;
@@ -108,10 +112,31 @@ public class ClientAcctProcessor extends SvrProcess
 			m_ass = MAcctSchema.getClientAcctSchema(getCtx(), getAD_Client_ID());
 		else	//	only specific accounting schema
 			m_ass = new MAcctSchema[] {new MAcctSchema (getCtx(), p_C_AcctSchema_ID, get_TrxName())};
+		
+		// iDempiereConsulting __ 05/10/2017 -- Processo anche dalla InfoWindow selezionata....
+		if(getProcessInfo().getAD_InfoWindow_ID()>0){
+			MTable table = null; 
+			//TODO  se si vuole usare da codice il reperimento della tabella caricata dalla infoWindow, usare il codice qui sotto  ___SCOMMENTARE
+			//int infoWindow_ID = getProcessInfo().getAD_InfoWindow_ID();
+			//MInfoWindow infoWin = MInfoWindow.getInfoWindow(infoWindow_ID);
+			//table = MTable.get(getCtx(), infoWin.getAD_Table_ID());
+			//if(p_AD_Table_ID<=0)
+				//p_AD_Table_ID = table.getAD_Table_ID();
+			//--
+			String tableName = MTable.getTableName(getCtx(), p_AD_Table_ID);
 
-		postSession();
+			StringBuilder sql = new StringBuilder("SELECT "+tableName+".* FROM "+tableName+", T_Selection ")
+					.append("WHERE "+tableName+"."+tableName+"_ID = T_Selection.T_Selection_ID ")
+					.append("AND T_Selection.AD_PInstance_ID=? ")
+					.append("ORDER BY "+tableName+"."+tableName+"_ID");
+			postSession_T_Selection(sql, tableName);
+		}else{
+			postSession();
+			
+		}
+		// iDempiereConsulting __ 05/10/2017
 		MCost.create(m_client);
-
+		
 		addLog(m_summary.toString());
 
 		return "@OK@";
@@ -277,4 +302,99 @@ public class ClientAcctProcessor extends SvrProcess
 
 	}	//	postSession
 
+	// iDempiereConsulting __ 05/10/2017 -- Processo anche dalla InfoWindow selezionata, tramite la T_Selection
+	/**
+	 * 	Post Session from T_Selection infoWindow
+	 */
+	private void postSession_T_Selection(StringBuilder sql, String tableName) {
+		
+		List<BigDecimal> listProcessedOn = new ArrayList<BigDecimal>();
+		listProcessedOn.add(Env.ZERO); // to include potential null values
+
+		//get current time from db
+		Timestamp ts = DB.getSQLValueTS(get_TrxName(), "SELECT CURRENT_TIMESTAMP FROM DUAL");
+
+		//go back 2 second to be safe (to avoid posting documents being completed at this precise moment)
+		long ms = ts.getTime()- (2 * 1000);
+		ts = new Timestamp(ms);
+		long mili = ts.getTime();
+		BigDecimal value = new BigDecimal(Long.toString(mili));
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try
+		{
+			pstmt= DB.prepareStatement(sql.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, get_TrxName());
+			pstmt.setInt(1, getAD_PInstance_ID());
+			
+			rs = pstmt.executeQuery ();
+			int rowcount = 0;
+			if (rs.last()) {
+			  rowcount = rs.getRow();
+			  rs.beforeFirst(); // not rs.first() because the rs.next() below will move on, missing the first element
+			}
+			// initialize counters per table
+			int[] count = new int[rowcount];
+			int[] countError = new int[rowcount];
+			for (int i = 0; i < count.length; i++) {
+				count[i] = 0;
+				countError[i] = 0;
+			}
+			PO poRecord = null;
+			int i = 0;
+			while (rs.next ())
+			{
+				poRecord = MTable.get(getCtx(), tableName).getPO(rs, null);
+				if(poRecord.get_ValueAsBoolean("Processed") && !poRecord.get_ValueAsBoolean("Posted") && poRecord.get_ValueAsBoolean("IsActive")){
+					count[i]++;
+					boolean ok = true;
+					// Run every posting document in own transaction
+					String innerTrxName = Trx.createTrxName("CAP");
+					Trx innerTrx = Trx.get(innerTrxName, true);
+					innerTrx.setDisplayName(getClass().getName()+"_postSession");
+
+					try
+					{
+						String error = DocManager.postDocument(m_ass, poRecord.get_Table_ID(), rs, false, false, innerTrxName);
+						ok = (error == null);
+					}
+					catch (Exception e)
+					{
+						log.log(Level.SEVERE, getName() + ": " + tableName, e);
+						ok = false;
+					}
+					finally
+					{
+						innerTrx.commit();
+						innerTrx.close();
+						innerTrx = null;
+					}
+					if (!ok)
+						countError[i]++;
+					
+
+					m_summary.append(tableName).append("=").append(count[i]);
+					if (countError[i] > 0)
+						m_summary.append("(Errors=").append(countError[i]).append(")");
+					m_summary.append(" - ");
+					StringBuilder msglog = new StringBuilder().append(getName()).append(": ").append(m_summary.toString());
+					if (log.isLoggable(Level.FINER)) log.finer(msglog.toString());
+				
+				}
+				i++;
+			}
+		}
+		catch (Exception e)
+		{
+			log.log(Level.SEVERE, sql.toString(), e);
+			throw new AdempiereException(e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null;
+			pstmt = null;
+		}
+	}
+	// iDempiereConsulting __ 05/10/2017 
 }	//	ClientAcctProcessor
