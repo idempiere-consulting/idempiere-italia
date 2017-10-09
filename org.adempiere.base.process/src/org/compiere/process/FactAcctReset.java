@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MAcctSchema;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MBankStatement;
@@ -39,6 +40,7 @@ import org.compiere.model.MPayment;
 import org.compiere.model.MPeriodControl;
 import org.compiere.model.MProjectIssue;
 import org.compiere.model.MRequisition;
+import org.compiere.model.MTable;
 import org.compiere.model.X_M_Production;
 import org.compiere.util.DB;
 import org.compiere.util.TimeUtil;
@@ -101,41 +103,62 @@ public class FactAcctReset extends SvrProcess
 	 */
 	protected String doIt() throws Exception
 	{
-		if (log.isLoggable(Level.INFO)) log.info("AD_Client_ID=" + p_AD_Client_ID 
-			+ ", AD_Table_ID=" + p_AD_Table_ID + ", DeletePosting=" + p_DeletePosting);
-		//	List of Tables with Accounting Consequences
-		String sql = "SELECT AD_Table_ID, TableName "
-			+ "FROM AD_Table t "
-			+ "WHERE t.IsView='N'";
-		if (p_AD_Table_ID > 0)
-			sql += " AND t.AD_Table_ID=" + p_AD_Table_ID;
-		sql += " AND EXISTS (SELECT * FROM AD_Column c "
-				+ "WHERE t.AD_Table_ID=c.AD_Table_ID AND c.ColumnName='Posted' AND c.IsActive='Y')";
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		try
-		{
-			pstmt = DB.prepareStatement(sql, get_TrxName());
-			rs = pstmt.executeQuery();
-			while (rs.next())
+		// iDempiereConsulting __ 09/10/2017 -- Processo anche dalla InfoWindow selezionata....
+		if(getProcessInfo().getAD_InfoWindow_ID()>0){
+			MTable table = null; 
+			//TODO  se si vuole usare da codice il reperimento della tabella caricata dalla infoWindow, usare il codice qui sotto  ___SCOMMENTARE
+			//int infoWindow_ID = getProcessInfo().getAD_InfoWindow_ID();
+			//MInfoWindow infoWin = MInfoWindow.getInfoWindow(infoWindow_ID);
+			//table = MTable.get(getCtx(), infoWin.getAD_Table_ID());
+			//if(p_AD_Table_ID<=0)
+				//p_AD_Table_ID = table.getAD_Table_ID();
+			//--
+			String tableName = MTable.getTableName(getCtx(), p_AD_Table_ID);
+
+			StringBuilder sql = new StringBuilder("SELECT "+tableName+".* FROM "+tableName+", T_Selection ")
+					.append("WHERE "+tableName+"."+tableName+"_ID = T_Selection.T_Selection_ID ")
+					.append("AND T_Selection.AD_PInstance_ID=? ")
+					.append("ORDER BY "+tableName+"."+tableName+"_ID");
+			reset_T_Selection(sql, tableName);
+		}
+		// iDempiereConsulting __ 09/10/2017 
+		else{
+			if (log.isLoggable(Level.INFO)) log.info("AD_Client_ID=" + p_AD_Client_ID 
+					+ ", AD_Table_ID=" + p_AD_Table_ID + ", DeletePosting=" + p_DeletePosting);
+			//	List of Tables with Accounting Consequences
+			String sql = "SELECT AD_Table_ID, TableName "
+					+ "FROM AD_Table t "
+					+ "WHERE t.IsView='N'";
+			if (p_AD_Table_ID > 0)
+				sql += " AND t.AD_Table_ID=" + p_AD_Table_ID;
+			sql += " AND EXISTS (SELECT * FROM AD_Column c "
+					+ "WHERE t.AD_Table_ID=c.AD_Table_ID AND c.ColumnName='Posted' AND c.IsActive='Y')";
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			try
 			{
-				int AD_Table_ID = rs.getInt(1);
-				String TableName = rs.getString(2);
-				if (p_DeletePosting)
-					delete (TableName, AD_Table_ID);
-				else
-					reset (TableName);
+				pstmt = DB.prepareStatement(sql, get_TrxName());
+				rs = pstmt.executeQuery();
+				while (rs.next())
+				{
+					int AD_Table_ID = rs.getInt(1);
+					String TableName = rs.getString(2);
+					if (p_DeletePosting)
+						delete (TableName, AD_Table_ID);
+					else
+						reset (TableName);
+				}
 			}
-		}
-		catch (Exception e)
-		{
-			log.log(Level.SEVERE, sql, e);
-		}
-		finally
-		{
-			DB.close(rs, pstmt);
-			rs = null;
-			pstmt = null;
+			catch (Exception e)
+			{
+				log.log(Level.SEVERE, sql, e);
+			}
+			finally
+			{
+				DB.close(rs, pstmt);
+				rs = null;
+				pstmt = null;
+			}
 		}
 		//
 		return "@Updated@ = " + m_countReset + ", @Deleted@ = " + m_countDelete;
@@ -161,6 +184,60 @@ public class FactAcctReset extends SvrProcess
 			if (log.isLoggable(Level.FINE)) log.fine(TableName + " - Unlocked=" + unlocked + " - Invalid=" + invalid);
 		m_countReset += unlocked + invalid; 
 	}	//	reset
+	
+	// iDempiereConsulting __ 09/10/2017 -- Processo anche dalla InfoWindow selezionata, tramite la T_Selection
+	/**
+	 * Reset Accounting Table and update count from T_Selection
+	 * 
+	 * @param sqlTSelec
+	 * @param TableName
+	 */
+	private void reset_T_Selection (StringBuilder sqlTSelec, String TableName)
+	{
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = null;
+		try
+		{
+			pstmt= DB.prepareStatement(sqlTSelec.toString(), get_TrxName());
+			pstmt.setInt(1, getAD_PInstance_ID());
+			
+			rs = pstmt.executeQuery ();
+			int idRecord = 0;
+			String colNameIDTable = TableName+"_ID";
+			while (rs.next ())
+			{
+				idRecord = rs.getInt(colNameIDTable);
+				sql = "UPDATE " + TableName
+						+ " SET Processing='N' WHERE AD_Client_ID=" + p_AD_Client_ID
+						+ " AND "+colNameIDTable+"="+idRecord
+						+ " AND (Processing<>'N' OR Processing IS NULL)";
+				int unlocked = DB.executeUpdate(sql, get_TrxName());
+				//
+				sql = "UPDATE " + TableName
+						+ " SET Posted='N' WHERE AD_Client_ID=" + p_AD_Client_ID
+						+ " AND "+colNameIDTable+"="+idRecord
+						+ " AND (Posted NOT IN ('Y','N') OR Posted IS NULL) AND Processed='Y'";
+				int invalid = DB.executeUpdate(sql, get_TrxName());
+				//
+				if (unlocked + invalid != 0)
+					if (log.isLoggable(Level.FINE)) log.fine(TableName + " - Unlocked=" + unlocked + " - Invalid=" + invalid);
+				m_countReset += unlocked + invalid;
+			}
+		}
+		catch (Exception e)
+		{
+			log.log(Level.SEVERE, sql.toString(), e);
+			throw new AdempiereException(e);
+		}
+		finally
+		{
+			DB.close(rs, pstmt);
+			rs = null;
+			pstmt = null;
+		}
+	}	//	reset_T_Selection
+	// iDempiereConsulting __ 09/10/2017 
 
 	/**
 	 * 	Delete Accounting Table where period status is open and update count.
