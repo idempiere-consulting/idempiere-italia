@@ -561,8 +561,10 @@ public class Tax
 		}
 
 		MTax[] taxes = MTax.getAll (ctx);
-		MLocation lFrom = new MLocation (ctx, billFromC_Location_ID, trxName); 
-		MLocation lTo = new MLocation (ctx, billToC_Location_ID, trxName); 
+		//MLocation lFrom = new MLocation (ctx, billFromC_Location_ID, trxName);
+		MLocation lFrom = new MLocation (ctx, shipFromC_Location_ID, trxName);
+		//MLocation lTo = new MLocation (ctx, billToC_Location_ID, trxName);
+		MLocation lTo = new MLocation (ctx, shipToC_Location_ID, trxName);
 		if (log.isLoggable(Level.FINER)){
 			log.finer("From=" + lFrom);
 			log.finer("To=" + lTo);

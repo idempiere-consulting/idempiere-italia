@@ -20,6 +20,8 @@ package org.adempiere.webui.editor;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -42,8 +44,11 @@ import org.adempiere.webui.util.ZKUpdateUtil;
 import org.adempiere.webui.window.WFieldRecordInfo;
 import org.compiere.model.GridField;
 import org.compiere.model.GridTab;
+import org.compiere.model.MColumn;
 import org.compiere.model.MRole;
 import org.compiere.model.MStyle;
+import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.model.X_AD_StyleLine;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -627,6 +632,16 @@ public abstract class WEditor implements EventListener<Event>, PropertyChangeLis
 				if (!Evaluator.evaluateLogic(getStyleEvaluatee(), displayLogic)) 
 					continue;
 			}
+			
+			if(!Util.isEmpty(inlineStyle) && inlineStyle.contains("@")){
+				int row = gridField.getGridTab().getCurrentRow();
+				if(row>=0){
+					PO modelPO = gridField.getGridTab().getTableModel().getPO(row);
+					if(modelPO!=null)
+						inlineStyle = parse(inlineStyle,modelPO);
+				}
+			}
+			
 			if (styleBuilder.length() > 0 && !(styleBuilder.charAt(styleBuilder.length()-1)==';'))
 				styleBuilder.append("; ");
 			styleBuilder.append(inlineStyle);
@@ -835,4 +850,126 @@ public abstract class WEditor implements EventListener<Event>, PropertyChangeLis
 		}
 		
 	}
+	
+	
+	/**
+	 * 	Parse text
+	 *	@param text text
+	 *	@param po object
+	 *	@return parsed text
+	 */
+	private String parse (String text, PO po)
+	{
+		if (po == null || text.indexOf('@') == -1)
+			return text;
+
+		String inStr = text;
+		String token;
+		StringBuilder outStr = new StringBuilder();
+
+		int i = inStr.indexOf('@');
+		while (i != -1)
+		{
+			outStr.append(inStr.substring(0, i));			// up to @
+			inStr = inStr.substring(i+1, inStr.length());	// from first @
+
+			int j = inStr.indexOf('@');						// next @
+			if (j < 0)										// no second tag
+			{
+				inStr = "@" + inStr;
+				break;
+			}
+
+			token = inStr.substring(0, j);
+
+			//format string
+			String format = "";
+			int f = token.indexOf('<');
+			if (f > 0 && token.endsWith(">")) {
+				format = token.substring(f+1, token.length()-1);
+				token = token.substring(0, f);
+			}
+
+			outStr.append(parseVariable(token, format, po));		// replace context
+
+			inStr = inStr.substring(j+1, inStr.length());	// from second @
+			i = inStr.indexOf('@');
+		}
+
+		outStr.append(inStr);				//	add remainder
+		return outStr.toString();
+	}	//	parse
+	
+	/**
+	 * 	Parse Variable
+	 *	@param variable variable
+	 *	@param po po
+	 *	@return translated variable or if not found the original tag
+	 */
+	private String parseVariable (String variable, String format,PO po)
+	{
+		int index = po.get_ColumnIndex(variable);
+		if (index == -1) {
+			int i = variable.indexOf('.');
+			if(i != -1)
+			{
+				StringBuilder outStr = new StringBuilder();
+				outStr.append(variable.substring(0, i));
+				variable = variable.substring(i+1, variable.length());
+				outStr.append("_ID"); //Foreign Key column
+
+				index = po.get_ColumnIndex(outStr.toString());
+
+				Integer subRecordId;
+
+				if (index != -1){
+					MColumn column = MColumn.get(Env.getCtx(), po.get_TableName(), po.get_ColumnName(index));
+					MTable table = MTable.get(Env.getCtx(),column.getReferenceTableName());
+
+					subRecordId = (Integer)po.get_Value(outStr.toString());
+					if(subRecordId==null)
+						return "";
+					PO subPo = table.getPO(subRecordId, null);						
+					return parseVariable(variable,format,subPo);
+				}
+			}
+
+			StringBuilder msgreturn = new StringBuilder("@").append(variable).append("@");
+			return msgreturn.toString();	//	keep for next
+		}	
+		//
+		MColumn col = MColumn.get(Env.getCtx(), po.get_TableName(), variable);
+		Object value = null;
+		if (col != null && col.isSecure()) {
+			value = "********";
+		} else if (col.getAD_Reference_ID() == DisplayType.Date || col.getAD_Reference_ID() == DisplayType.DateTime || col.getAD_Reference_ID() == DisplayType.Time) {
+			SimpleDateFormat sdf;
+			if(format != null && format.length() > 0){
+				sdf = new SimpleDateFormat(format, Env.getLanguage(Env.getCtx()).getLocale());
+			}else{
+				sdf = DisplayType.getDateFormat(col.getAD_Reference_ID());
+			}
+			if(po.get_Value(index)!=null)
+				value = sdf.format (po.get_Value(index));	
+		} else if (col.getAD_Reference_ID() == DisplayType.YesNo) {
+			if (po.get_ValueAsBoolean(variable))
+				value = Msg.getMsg(Env.getCtx(), "Yes");
+			else
+				value = Msg.getMsg(Env.getCtx(), "No");
+		}else if (col.getAD_Reference_ID() == DisplayType.Number || col.getAD_Reference_ID() == DisplayType.Amount) {
+			DecimalFormat df;
+			if(format != null && format.length() > 0){
+				df =  DisplayType.getNumberFormat(col.getAD_Reference_ID(),null,format);
+			}else{
+				df = DisplayType.getNumberFormat(col.getAD_Reference_ID());
+			}
+			if(po.get_Value(index)!=null)
+				value = df.format (po.get_Value(index));	
+		}else {
+			value = po.get_Value(index);
+		}
+		if (value == null)
+			return "";
+		return value.toString();
+	}	//	parseVariable
 }
