@@ -1042,6 +1042,19 @@ public class MInvoice extends X_C_Invoice implements DocAction
 			}
 		}
 
+		if (! recursiveCall && (newRecord || is_ValueChanged(COLUMNNAME_C_PaymentTerm_ID))) {
+			recursiveCall = true;
+			try {
+				MPaymentTerm pt = new MPaymentTerm (getCtx(), getC_PaymentTerm_ID(), get_TrxName());
+				boolean valid = pt.apply(this);
+				setIsPayScheduleValid(valid);
+			} catch (Exception e) {
+				throw e;
+			} finally {
+				recursiveCall = false;
+			}
+		}
+
 		return true;
 	}	//	beforeSave
 
@@ -1664,7 +1677,8 @@ public class MInvoice extends X_C_Invoice implements DocAction
 		MInvoicePaySchedule[] schedule = MInvoicePaySchedule.getInvoicePaySchedule
 			(getCtx(), getC_Invoice_ID(), 0, get_TrxName());
 
-		if (schedule.length > 0) {
+		// iDempiereConsulting __ 28/07/2017 -- Check validate automatic payment Term 
+		if (schedule.length > 0  && get_ValueAsBoolean("LIT_isNoCheckPaymentTerm")) {
 			if (numSchema == 0)
 				return false; // created a schedule for a payment term that doesn't manage schedule
 			return validatePaySchedule();
@@ -1675,6 +1689,7 @@ public class MInvoice extends X_C_Invoice implements DocAction
 			else
 				return isValid;
 		}
+		//  iDempiereConsulting __ 28/07/2017
 	}	//	createPaySchedule
 
 
