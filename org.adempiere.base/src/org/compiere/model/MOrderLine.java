@@ -19,6 +19,8 @@ package org.compiere.model;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -832,6 +834,10 @@ public class MOrderLine extends X_C_OrderLine
 	 */
 	protected boolean beforeSave (boolean newRecord)
 	{
+		// iDempiereConsulting __ 27/07/2017 -- CustomPriceList
+		customPriceList();
+		// iDempiereConsulting __ 27/07/2017
+		
 		if (newRecord && getParent().isComplete()) {
 			log.saveError("ParentComplete", Msg.translate(getCtx(), "C_OrderLine"));
 			return false;
@@ -922,6 +928,7 @@ public class MOrderLine extends X_C_OrderLine
 					MAttributeSet mas = MAttributeSet.get(getCtx(), M_AttributeSet_ID);
 					isInstance = mas.isInstanceAttribute();
 				}
+				/*
 				//	Max
 				if (isInstance)
 				{
@@ -941,7 +948,7 @@ public class MOrderLine extends X_C_OrderLine
 						log.saveError("QtyInsufficient", "=" + qty); 
 						return false;
 					}
-				}
+				} */
 			}	//	stocked
 		}	//	SO instance
 		
@@ -977,7 +984,88 @@ public class MOrderLine extends X_C_OrderLine
 		
 		return true;
 	}	//	beforeSave
+	
+	private void customPriceList(){
 
+		String po_PriceList = MSysConfig.getValue("IDIT_PO_PriceList", Env.getAD_Client_ID(Env.getCtx())); 
+		if(po_PriceList != null && !po_PriceList.equals("")){
+			if(!po_PriceList.equals("N")){
+
+				if(getC_Order()!= null){
+					MOrder order = null;
+					//bypass for new record created in a process
+					order = new MOrder(Env.getCtx(), getC_Order().getC_Order_ID(), getParent().get_TrxName());
+					
+						
+					int orderPriceListID = order.getM_PriceList_ID();
+					Timestamp dateOrder = order.getDateOrdered();
+					
+					MPriceList orderPriceList = MPriceList.get(Env.getCtx(), orderPriceListID, null);
+					MPriceListVersion orderPriceListVer = orderPriceList.getPriceListVersion(dateOrder);
+					
+					String whereClause = "AND "+I_M_ProductPrice.COLUMNNAME_M_Product_ID+"="+getM_Product_ID()
+											+ " AND isActive='Y' AND AD_Client_ID="+Env.getAD_Client_ID(Env.getCtx());
+					
+					BigDecimal priceList = null;
+					BigDecimal priceStd  = null;
+					MProductPrice[] productPrice = orderPriceListVer.getProductPrice(whereClause);
+					if(productPrice.length==0){
+						MProductPrice prodPriceNew = new MProductPrice(Env.getCtx(), 0, null);
+						prodPriceNew.setM_PriceList_Version_ID(orderPriceListVer.getM_PriceList_Version_ID());
+						prodPriceNew.setM_Product_ID(getM_Product_ID());
+						try{
+							prodPriceNew.saveEx();
+						}catch (AdempiereException e) {
+							throw new AdempiereException(e.getMessage()+" -- Price List no active");
+						}
+						
+						boolean isPLUpdatable = false;
+						if(po_PriceList.equals("X"))
+						{
+							MBPartner bPartner = MBPartner.get(Env.getCtx(), order.getC_BPartner_ID());
+							isPLUpdatable = bPartner.get_ValueAsBoolean("LIT_isPriceListUpdatable");
+						}
+						
+						if(po_PriceList.equals("Y") || po_PriceList.equals("U") || isPLUpdatable){
+							priceList =  getPriceList();
+							priceStd  = getPriceEntered();//Entered
+//							BigDecimal priceLimit = getPriceLimit();
+							
+//							prodPriceNew.setPrices(priceList, priceStd, priceLimit);
+							prodPriceNew.setPrices(priceList, priceStd, BigDecimal.ZERO);
+							prodPriceNew.saveEx();
+						}
+						setPrice(orderPriceListID);
+					}else{
+						
+						if(po_PriceList.equals("U") || po_PriceList.equals("X")){
+							MBPartner bPartner = MBPartner.get(Env.getCtx(), order.getC_BPartner_ID());
+							boolean isPLUpdatable = bPartner.get_ValueAsBoolean("LIT_isPriceListUpdatable");
+							if(isPLUpdatable){
+								priceList =  getPriceList();
+								priceStd  = getPriceEntered();//Entered
+								
+								MProductPrice prodPriceUpd = productPrice[0];
+								
+								prodPriceUpd.setPrices(priceList, priceStd, BigDecimal.ZERO);
+								prodPriceUpd.saveEx();
+//								orderLine.setPrice(orderPriceListID);
+							}
+						}
+						else
+						{
+							getProductPricing (orderPriceListID);
+						}
+					}
+				}
+			}
+		}
+		else{
+			throw new AdempiereException(Msg.getMsg(Env.getCtx(), "VAR_Po_PriceList", true));
+		}
+
+		////
+	}
 	
 	/**
 	 * 	Before Delete
