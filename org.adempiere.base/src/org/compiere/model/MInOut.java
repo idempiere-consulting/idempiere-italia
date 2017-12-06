@@ -1174,7 +1174,12 @@ public class MInOut extends X_M_InOut implements DocAction
 		}
 		BigDecimal Volume = Env.ZERO;
 		BigDecimal Weight = Env.ZERO;
-
+		// iDempiereConsulting __ 05/12/2017 -- (PATCH-Weight) If the weight is already present in the document head, it is used as final data at the time of the complete document
+		BigDecimal docWeight = getWeight(); 
+		if(docWeight.intValue()>0)
+			Weight = getWeight();
+		// iDempiereConsulting __ 05/12/2017 -- (PATCH-Weight)_
+		
 		//	Mandatory Attributes
 		for (int i = 0; i < lines.length; i++)
 		{
@@ -1183,7 +1188,10 @@ public class MInOut extends X_M_InOut implements DocAction
 			if (product != null)
 			{
 				Volume = Volume.add(product.getVolume().multiply(line.getMovementQty()));
-				Weight = Weight.add(product.getWeight().multiply(line.getMovementQty()));
+				// iDempiereConsulting __ 05/12/2017 -- (PATCH-Weight)_2
+				if(docWeight.intValue()<=0)
+					Weight = Weight.add(product.getWeight().multiply(line.getMovementQty()));
+				// iDempiereConsulting __ 05/12/2017 -- (PATCH-Weight)_
 			}
 			//
 			if (line.getM_AttributeSetInstance_ID() != 0)
