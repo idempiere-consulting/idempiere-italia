@@ -634,11 +634,13 @@ public abstract class WEditor implements EventListener<Event>, PropertyChangeLis
 			}
 			
 			if(!Util.isEmpty(inlineStyle) && inlineStyle.contains("@")){
-				int row = gridField.getGridTab().getCurrentRow();
-				if(row>=0){
-					PO modelPO = gridField.getGridTab().getTableModel().getPO(row);
-					if(modelPO!=null)
-						inlineStyle = parse(inlineStyle,modelPO);
+				if(gridField.getGridTab()!=null){
+					int row = gridField.getGridTab().getCurrentRow();
+					if(row>=0){
+						PO modelPO = gridField.getGridTab().getTableModel().getPO(row);
+						if(modelPO!=null)
+							inlineStyle = parse(inlineStyle,modelPO);
+					}
 				}
 			}
 			
