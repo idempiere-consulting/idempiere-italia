@@ -941,7 +941,18 @@ public class MInvoice extends X_C_Invoice implements DocAction
 			setBPartner(MBPartner.getTemplate(getCtx(), getAD_Client_ID()));
 		if (getC_BPartner_Location_ID() == 0)
 			setBPartner(new MBPartner(getCtx(), getC_BPartner_ID(), null));
-
+	
+	//////////////iDempiereConsulting __ 06/02/2018 INSERIMENTO PATCH - Errore durante il salavataggio nel caso la data Registrazione Fattura sia antecedente all'ultima data della fattura registrata
+	 if (newRecord || !newRecord) {	
+		String sql = "SELECT NVL(MAX(DateAcct)) FROM C_Invoice WHERE AD_Client_ID=? AND issotrx=? AND (docstatus='CO' or docstatus='CL')";
+		Timestamp ii = DB.getSQLValueTS(null, sql, getAD_Client_ID(), isSOTrx());
+		if (getDateAcct().before(ii)) {
+				log.saveError("Error", Msg.getMsg(getCtx(), "Attenzione! Data Registrazione antecedente all'ultima data " + ii + " di registrazione effettuata!"));
+				return false;
+			}
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
 		//	Price List
 		if (getM_PriceList_ID() == 0)
 		{
@@ -1008,6 +1019,8 @@ public class MInvoice extends X_C_Invoice implements DocAction
 			if (order.getC_CashPlanLine_ID() > 0)
 				setC_CashPlanLine_ID(order.getC_CashPlanLine_ID());
 		}
+		
+				
 
 		// IDEMPIERE-1597 Price List and Date must be not-updateable
 		if (!newRecord && (is_ValueChanged(COLUMNNAME_M_PriceList_ID) || is_ValueChanged(COLUMNNAME_DateInvoiced))) {
