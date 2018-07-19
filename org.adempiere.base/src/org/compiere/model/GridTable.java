@@ -54,6 +54,7 @@ import org.adempiere.exceptions.DBException;
 import org.adempiere.util.ServerContext;
 import org.compiere.Adempiere;
 import org.compiere.util.CLogger;
+import org.compiere.util.CacheMgt;
 import org.compiere.util.DB;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
@@ -103,11 +104,12 @@ public class GridTable extends AbstractTableModel
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -4651516342985623070L;
+	private static final long serialVersionUID = -2741647620577906242L;
 
 	public static final String DATA_REFRESH_MESSAGE = "Refreshed";
 	public static final String DATA_UPDATE_COPIED_MESSAGE = "UpdateCopied";
 	public static final String DATA_INSERTED_MESSAGE = "Inserted";
+	public static final String DATA_IGNORED_MESSAGE = "Ignored";
 
 	/**
 	 *	JDBC Based Buffered Table
@@ -548,7 +550,7 @@ public class GridTable extends AbstractTableModel
 	 *  @param index index
 	 *  @return GridField
 	 */
-	protected GridField getField (int index)
+	public GridField getField (int index)
 	{
 		if (index < 0 || index >= m_fields.size())
 			return null;
@@ -2118,6 +2120,9 @@ public class GridTable extends AbstractTableModel
 			rs = null; 
 			pstmt = null;
 		}
+		
+		CacheMgt.get().reset(m_tableName);
+		
 		//	everything ok
 		m_rowData = null;
 		m_changed = false;
@@ -2854,7 +2859,7 @@ public class GridTable extends AbstractTableModel
 		//	fireTableRowsUpdated(m_rowChanged, m_rowChanged); >> messes up display?? (clearSelection)
 		}
 		m_newRow = -1;
-		fireDataStatusIEvent("Ignored", "");
+		fireDataStatusIEvent(DATA_IGNORED_MESSAGE, "");
 	}	//	dataIgnore
 
 

@@ -135,12 +135,11 @@ public class CalloutInvoice extends CalloutEngine
 			+ " COALESCE(p.M_PriceList_ID,g.M_PriceList_ID) AS M_PriceList_ID, p.PaymentRule,p.POReference,"
 			+ " p.SO_Description,p.IsDiscountPrinted,"
 			+ " p.SO_CreditLimit, p.SO_CreditLimit-p.SO_CreditUsed AS CreditAvailable,"
-			+ " l.C_BPartner_Location_ID,c.AD_User_ID,"
+			+ " (select max(lbill.C_BPartner_Location_ID) from C_BPartner_Location lbill where p.C_BPartner_ID=lbill.C_BPartner_ID AND lbill.IsBillTo='Y' AND lbill.IsActive='Y') AS C_BPartner_Location_ID,"
+			+ " (select max(c.AD_User_ID) from AD_User c where p.C_BPartner_ID=c.C_BPartner_ID AND c.IsActive='Y') as AD_User_ID,"
 			+ " COALESCE(p.PO_PriceList_ID,g.PO_PriceList_ID) AS PO_PriceList_ID, p.PaymentRulePO,p.PO_PaymentTerm_ID, p.SalesRep_ID " 
 			+ "FROM C_BPartner p"
-			+ " INNER JOIN C_BP_Group g ON (p.C_BP_Group_ID=g.C_BP_Group_ID)"			
-			+ " LEFT OUTER JOIN C_BPartner_Location l ON (p.C_BPartner_ID=l.C_BPartner_ID AND l.IsBillTo='Y' AND l.IsActive='Y')"
-			+ " LEFT OUTER JOIN AD_User c ON (p.C_BPartner_ID=c.C_BPartner_ID AND c.IsActive='Y') "
+			+ " INNER JOIN C_BP_Group g ON (p.C_BP_Group_ID=g.C_BP_Group_ID)"
 			+ "WHERE p.C_BPartner_ID=? AND p.IsActive='Y'";		//	#1
 
 		boolean IsSOTrx = Env.getContext(ctx, WindowNo, "IsSOTrx").equals("Y");
@@ -323,14 +322,20 @@ public class CalloutInvoice extends CalloutEngine
 			mTab.setValue("M_AttributeSetInstance_ID", null);
 
 		/*****	Price Calculation see also qty	****/
-		I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
+		boolean IsSOTrx = Env.getContext(ctx, WindowNo, "IsSOTrx").equals("Y");
+		int C_BPartner_ID = Env.getContextAsInt(ctx, WindowNo, "C_BPartner_ID");
+		BigDecimal Qty = (BigDecimal)mTab.getValue("QtyInvoiced");
 		IProductPricing pp = Core.getProductPricing();
+		pp.setInitialValues(M_Product_ID.intValue(), C_BPartner_ID, Qty, IsSOTrx, null);
+		Timestamp invoiceDate = Env.getContextAsDate(ctx, WindowNo, "DateInvoiced");
+		pp.setPriceDate(invoiceDate);
+		I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
 		pp.setInvoiceLine(invoiceLine, null);
+
 		//
 		int M_PriceList_ID = Env.getContextAsInt(ctx, WindowNo, "M_PriceList_ID");
 		pp.setM_PriceList_ID(M_PriceList_ID);
 
-		Timestamp invoiceDate = Env.getContextAsDate(ctx, WindowNo, "DateInvoiced");
 		/** PLV is only accurate if PL selected in header */
 		int M_PriceList_Version_ID = Env.getContextAsInt(ctx, WindowNo, "M_PriceList_Version_ID");
 		if ( M_PriceList_Version_ID == 0 && M_PriceList_ID > 0)
@@ -553,16 +558,20 @@ public class CalloutInvoice extends CalloutEngine
 			|| mField.getColumnName().equals("M_Product_ID")) 
 			&& !"N".equals(Env.getContext(ctx, WindowNo, "DiscountSchema")))
 		{
+			int C_BPartner_ID = Env.getContextAsInt(ctx, WindowNo, "C_BPartner_ID");
 			if (mField.getColumnName().equals("QtyEntered"))
 				QtyInvoiced = MUOMConversion.convertProductFrom (ctx, M_Product_ID, 
 					C_UOM_To_ID, QtyEntered);
 			if (QtyInvoiced == null)
 				QtyInvoiced = QtyEntered;
-			I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
+			boolean IsSOTrx = Env.getContext(ctx, WindowNo, "IsSOTrx").equals("Y");
 			IProductPricing pp = Core.getProductPricing();
+			pp.setInitialValues(M_Product_ID, C_BPartner_ID, QtyInvoiced, IsSOTrx, null);
+			Timestamp date = (Timestamp)mTab.getValue("DateInvoiced");
+			pp.setPriceDate(date);
+			I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
 			pp.setInvoiceLine(invoiceLine, null);
 			pp.setM_PriceList_ID(M_PriceList_ID);
-			pp.setQty(QtyInvoiced);
 			int	M_PriceList_Version_ID = Env.getContextAsInt(ctx, WindowNo, "M_PriceList_Version_ID");
 			pp.setM_PriceList_Version_ID(M_PriceList_Version_ID);
 			//
@@ -837,13 +846,18 @@ public class CalloutInvoice extends CalloutEngine
 		}
 
 		/*****	Price Calculation see also qty	****/
-		I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
+		int C_BPartner_ID = Env.getContextAsInt(ctx, WindowNo, "C_BPartner_ID");
+		BigDecimal Qty = (BigDecimal)mTab.getValue("QtyOrdered");
+		boolean IsSOTrx = Env.getContext(ctx, WindowNo, "IsSOTrx").equals("Y");
 		IProductPricing pp = Core.getProductPricing();
+		pp.setInitialValues(M_Product_ID.intValue(), C_BPartner_ID, Qty, IsSOTrx, null);
+		Timestamp orderDate = (Timestamp)mTab.getValue("DateOrdered");
+		pp.setPriceDate(orderDate);
+		I_C_InvoiceLine invoiceLine = GridTabWrapper.create(mTab, I_C_InvoiceLine.class);
 		pp.setInvoiceLine(invoiceLine, null);
 		//
 		int M_PriceList_ID = Env.getContextAsInt(ctx, WindowNo, "M_PriceList_ID");
 		pp.setM_PriceList_ID(M_PriceList_ID);
-		Timestamp orderDate = (Timestamp)mTab.getValue("DateOrdered");
 		/** PLV is only accurate if PL selected in header */
 		int M_PriceList_Version_ID = Env.getContextAsInt(ctx, WindowNo, "M_PriceList_Version_ID");
 		if ( M_PriceList_Version_ID == 0 && M_PriceList_ID > 0)

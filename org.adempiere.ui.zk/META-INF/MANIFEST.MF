@@ -50,8 +50,8 @@ Import-Package: groovy.transform.stc;version="2.4.7",
 DynamicImport-Package: action.images
 Bundle-ClassPath: idIta.modification.org.adempiere.ui.zk.jar,
  .,
- WEB-INF/lib/daisydiff-min.jar,
- WEB-INF/lib/ckez.jar
+ WEB-INF/lib/ckez.jar,
+ WEB-INF/lib/daisydiff.jar
 Export-Package: fi.jawsy.jawwa.zk.atmosphere,
  metainfo.zk,
  org.adempiere.webui,
