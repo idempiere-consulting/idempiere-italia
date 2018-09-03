@@ -947,7 +947,7 @@
 <unit id="zul.sources" version="8.5.0"/>
 <unit id="zweb" version="8.5.0"/>
 <unit id="zweb.sources" version="8.5.0"/>
-<repository location="https://sourceforge.net/projects/idempiere/files/binary.file/jarfile/maven-p2-R20180726"/>
+<repository location="http://netcologne.dl.sourceforge.net/project/idempiere/binary.file/jarfile/maven-p2-R20180421"/>
 </location>
 	<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 		<unit id="com.jaspersoft.studio.bundles.barbecue" version="1.5.0.beta1"/>
