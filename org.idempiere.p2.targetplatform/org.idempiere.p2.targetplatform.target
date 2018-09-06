@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><?pde version="3.8"?><target name="idempiere" sequenceNumber="107">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?><target name="idempiere" sequenceNumber="108">
 <locations>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.restlet.example.feature.group" version="2.3.2.v20150501-1520"/>
@@ -50,12 +51,12 @@
 </location>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.core.runtime.feature.feature.group" version="1.2.2.v20180210-1608"/>
-<unit id="org.eclipse.cvs.feature.group" version="1.4.403.v20180301-0715"/>
-<unit id="org.eclipse.cvs.source.feature.group" version="1.4.403.v20180301-0715"/>
+<unit id="org.eclipse.cvs.feature.group" version="1.4.404.v20180330-0640"/>
+<unit id="org.eclipse.cvs.source.feature.group" version="1.4.404.v20180330-0640"/>
 <unit id="org.eclipse.e4.core.tools.feature.feature.group" version="4.7.0.v20170515-1617"/>
 <unit id="org.eclipse.e4.core.tools.feature.source.feature.group" version="4.7.0.v20170515-1617"/>
-<unit id="org.eclipse.e4.rcp.feature.group" version="1.6.3.v20180214-0345"/>
-<unit id="org.eclipse.e4.rcp.source.feature.group" version="1.6.3.v20180214-0345"/>
+<unit id="org.eclipse.e4.rcp.feature.group" version="1.6.3.v20180329-0507"/>
+<unit id="org.eclipse.e4.rcp.source.feature.group" version="1.6.3.v20180329-0507"/>
 <unit id="org.eclipse.ecf.core.feature.feature.group" version="1.4.0.v20170516-2248"/>
 <unit id="org.eclipse.ecf.core.feature.source.feature.group" version="1.4.0.v20170516-2248"/>
 <unit id="org.eclipse.ecf.core.ssl.feature.feature.group" version="1.1.0.v20170110-1317"/>
@@ -87,34 +88,34 @@
 <unit id="org.eclipse.equinox.p2.sdk.feature.group" version="3.10.3.v20180207-1239"/>
 <unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="2.3.2.v20171108-1343"/>
 <unit id="org.eclipse.equinox.p2.user.ui.source.feature.group" version="2.3.2.v20171108-1343"/>
-<unit id="org.eclipse.equinox.sdk.feature.group" version="3.13.3.v20180301-1149"/>
+<unit id="org.eclipse.equinox.sdk.feature.group" version="3.13.4.v20180322-2228"/>
 <unit id="org.eclipse.equinox.server.core.feature.group" version="1.5.3.v20180210-1608"/>
-<unit id="org.eclipse.equinox.server.jetty.feature.group" version="1.4.3.v20180301-1149"/>
+<unit id="org.eclipse.equinox.server.jetty.feature.group" version="1.4.4.v20180322-2228"/>
 <unit id="org.eclipse.equinox.server.p2.feature.group" version="1.3.1.v20170928-1405"/>
-<unit id="org.eclipse.equinox.serverside.sdk.feature.group" version="3.13.3.v20180301-1149"/>
-<unit id="org.eclipse.help.feature.group" version="2.2.103.v20180301-0715"/>
-<unit id="org.eclipse.help.source.feature.group" version="2.2.103.v20180301-0715"/>
-<unit id="org.eclipse.jdt.feature.group" version="3.13.3.v20180301-0715"/>
-<unit id="org.eclipse.jdt.source.feature.group" version="3.13.3.v20180301-0715"/>
+<unit id="org.eclipse.equinox.serverside.sdk.feature.group" version="3.13.4.v20180322-2228"/>
+<unit id="org.eclipse.help.feature.group" version="2.2.104.v20180330-0640"/>
+<unit id="org.eclipse.help.source.feature.group" version="2.2.104.v20180330-0640"/>
+<unit id="org.eclipse.jdt.feature.group" version="3.13.4.v20180330-0919"/>
+<unit id="org.eclipse.jdt.source.feature.group" version="3.13.4.v20180330-0919"/>
 <unit id="org.eclipse.osgi.compatibility.plugins.feature.feature.group" version="1.1.1.v20170811-1325"/>
 <unit id="org.eclipse.pde.api.tools.ee.feature.feature.group" version="1.0.200.v20170515-0910"/>
-<unit id="org.eclipse.pde.feature.group" version="3.13.3.v20180301-1154"/>
-<unit id="org.eclipse.pde.source.feature.group" version="3.13.3.v20180301-1154"/>
-<unit id="org.eclipse.platform.feature.group" version="4.7.3.v20180301-0715"/>
-<unit id="org.eclipse.platform.ide" version="4.7.3.M20180301-0715"/>
-<unit id="org.eclipse.platform.sdk" version="4.7.3.M20180301-0715"/>
-<unit id="org.eclipse.platform.source.feature.group" version="4.7.3.v20180301-0715"/>
-<unit id="org.eclipse.rcp.configuration.feature.group" version="1.1.3.v20180301-0715"/>
-<unit id="org.eclipse.rcp.feature.group" version="4.7.3.v20180301-0715"/>
-<unit id="org.eclipse.rcp.id" version="4.7.3.M20180301-0715"/>
-<unit id="org.eclipse.rcp.sdk.id" version="4.7.3.M20180301-0715"/>
-<unit id="org.eclipse.rcp.source.feature.group" version="4.7.3.v20180301-0715"/>
+<unit id="org.eclipse.pde.feature.group" version="3.13.4.v20180330-0640"/>
+<unit id="org.eclipse.pde.source.feature.group" version="3.13.4.v20180330-0640"/>
+<unit id="org.eclipse.platform.feature.group" version="4.7.3.v20180330-0640"/>
+<unit id="org.eclipse.platform.ide" version="4.7.3.M20180330-0640"/>
+<unit id="org.eclipse.platform.sdk" version="4.7.3.M20180330-0640"/>
+<unit id="org.eclipse.platform.source.feature.group" version="4.7.3.v20180330-0640"/>
+<unit id="org.eclipse.rcp.configuration.feature.group" version="1.1.4.v20180330-0640"/>
+<unit id="org.eclipse.rcp.feature.group" version="4.7.3.v20180330-0640"/>
+<unit id="org.eclipse.rcp.id" version="4.7.3.M20180330-0640"/>
+<unit id="org.eclipse.rcp.sdk.id" version="4.7.3.M20180330-0640"/>
+<unit id="org.eclipse.rcp.source.feature.group" version="4.7.3.v20180330-0640"/>
 <unit id="org.eclipse.releng.tools.feature.group" version="3.9.100.v20170516-0717"/>
-<unit id="org.eclipse.sdk.examples.feature.group" version="3.6.3.v20180301-0715"/>
-<unit id="org.eclipse.sdk.examples.source.feature.group" version="3.6.3.v20180301-0715"/>
-<unit id="org.eclipse.sdk.feature.group" version="4.7.3.v20180301-1154"/>
-<unit id="org.eclipse.sdk.ide" version="4.7.3.M20180301-0715"/>
-<unit id="org.eclipse.sdk.tests.feature.group" version="4.7.3.v20180301-0715"/>
+<unit id="org.eclipse.sdk.examples.feature.group" version="3.6.4.v20180330-0640"/>
+<unit id="org.eclipse.sdk.examples.source.feature.group" version="3.6.4.v20180330-0640"/>
+<unit id="org.eclipse.sdk.feature.group" version="4.7.3.v20180330-0919"/>
+<unit id="org.eclipse.sdk.ide" version="4.7.3.M20180330-0640"/>
+<unit id="org.eclipse.sdk.tests.feature.group" version="4.7.3.v20180330-0919"/>
 <unit id="org.eclipse.swt.tools.feature.feature.group" version="3.106.0.v20170503-0851"/>
 <unit id="org.eclipse.test.feature.group" version="3.7.200.v20170511-1043"/>
 <repository location="http://download.eclipse.org/eclipse/updates/4.7"/>
@@ -947,28 +948,28 @@
 <unit id="zul.sources" version="8.5.0"/>
 <unit id="zweb" version="8.5.0"/>
 <unit id="zweb.sources" version="8.5.0"/>
-<repository location="http://netcologne.dl.sourceforge.net/project/idempiere/binary.file/jarfile/maven-p2-R20180421"/>
+<repository location="http://netcologne.dl.sourceforge.net/project/idempiere/binary.file/jarfile/maven-p2-R20180726"/>
 </location>
-	<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
-		<unit id="com.jaspersoft.studio.bundles.barbecue" version="1.5.0.beta1"/>
-		<unit id="com.jaspersoft.studio.bundles.batik" version="1.8.0.js01"/>
-		<unit id="com.jaspersoft.studio.bundles.commons-digester" version="2.1.0.201503161008"/>
-		<unit id="com.jaspersoft.studio.bundles.itext" version="2.1.7.js5"/>
-		<unit id="com.jaspersoft.studio.bundles.jxl" version="2.6.10"/>
-		<unit id="com.jaspersoft.studio.bundles.poi" version="3.10.1.201502161145"/>
-		<unit id="com.jaspersoft.studio.bundles.zxing" version="2.3.0"/>
-		<unit id="net.sf.jasperreports.engine" version="6.3.1"/>
-		<unit id="net.sf.jasperreports.engine.source" version="6.3.1"/>
-		<unit id="org.apache.commons.collections" version="3.2.2.v201511171945"/>
-		<unit id="org.apache.servicemix.bundles.jaxen" version="1.1.1.2"/>
-		<unit id="org.apache.servicemix.bundles.rhino" version="1.7.6.1"/>
-		<unit id="org.apache.servicemix.bundles.xmlbeans" version="2.5.0.2"/>
-		<unit id="org.jfree.chart-osgi" version="1.0.19"/>
-		<unit id="org.jfree.jcommon-osgi" version="1.0.23"/>
-		<unit id="org.krysalis.barcode4j" version="2.1.0"/>
-		<repository location="https://sourceforge.net/projects/idempiere/files/binary.file/jarfile/jp-p2/jp-6.3.1/"/>
-		<unit id="org.w3c.dom.svg.patch" version="1.1.0"/>
-	</location>
+<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="true" type="InstallableUnit">
+<unit id="com.jaspersoft.studio.bundles.barbecue" version="1.5.0.beta1"/>
+<unit id="com.jaspersoft.studio.bundles.batik" version="1.8.0.js01"/>
+<unit id="com.jaspersoft.studio.bundles.commons-digester" version="2.1.0.201503161008"/>
+<unit id="com.jaspersoft.studio.bundles.itext" version="2.1.7.js5"/>
+<unit id="com.jaspersoft.studio.bundles.jxl" version="2.6.10"/>
+<unit id="com.jaspersoft.studio.bundles.poi" version="3.10.1.201502161145"/>
+<unit id="com.jaspersoft.studio.bundles.zxing" version="2.3.0"/>
+<unit id="net.sf.jasperreports.engine" version="6.3.1"/>
+<unit id="net.sf.jasperreports.engine.source" version="6.3.1"/>
+<unit id="org.apache.commons.collections" version="3.2.2.v201511171945"/>
+<unit id="org.apache.servicemix.bundles.jaxen" version="1.1.1.2"/>
+<unit id="org.apache.servicemix.bundles.rhino" version="1.7.6.1"/>
+<unit id="org.apache.servicemix.bundles.xmlbeans" version="2.5.0.2"/>
+<unit id="org.jfree.chart-osgi" version="1.0.19"/>
+<unit id="org.jfree.jcommon-osgi" version="1.0.23"/>
+<unit id="org.krysalis.barcode4j" version="2.1.0"/>
+<unit id="org.w3c.dom.svg.patch" version="1.1.0"/>
+<repository location="http://netcologne.dl.sourceforge.net/project/idempiere/binary.file/jarfile/jp-p2/jp-6.3.1/"/>
+</location>
 </locations>
 <targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 </target>
