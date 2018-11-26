@@ -381,6 +381,7 @@ public class GridFieldVO implements Serializable
 			vo.MandatoryLogic = rs.getString("MandatoryLogic");
 			vo.Placeholder = rs.getString("Placeholder");
 			vo.Placeholder2 = rs.getString("Placeholder2");
+			vo.IsSummarized = rs.getBoolean("IsSummarized");
 		}
 		catch (SQLException e)
 		{
@@ -427,6 +428,7 @@ public class GridFieldVO implements Serializable
 		voT.ValueMin = voF.ValueMin;
 		voT.ValueMax = voF.ValueMax;
 		voT.isRange = voF.isRange;
+		voT.IsSummarized = voF.IsSummarized;
 		//
 		// Genied: For a range parameter the second field 
 		// lookup behaviour should match the first one.
@@ -696,6 +698,8 @@ public class GridFieldVO implements Serializable
 	public String Placeholder2 = "";
 	/* Is HTML String */
 	public boolean		IsHtml = false;
+	/** Info Window summary field**/
+	public boolean IsSummarized = false;
 	
 	/**
 	 *  Set Context including contained elements
@@ -846,6 +850,7 @@ public class GridFieldVO implements Serializable
 		clone.AD_Process_ID_Of_Panel = AD_Process_ID_Of_Panel;
 		clone.AD_Window_ID_Of_Panel = AD_Window_ID_Of_Panel;
 		clone.AD_Infowindow_ID = AD_Infowindow_ID;
+		clone.IsSummarized = IsSummarized;
 		return clone;
 	}	//	clone
 	
