@@ -32,16 +32,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.webui.AdempiereWebUI;
 import org.adempiere.webui.ClientInfo;
 import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.event.TableValueChangeEvent;
 import org.adempiere.webui.event.TableValueChangeListener;
+import org.adempiere.webui.theme.ThemeManager;
 import org.adempiere.webui.util.ZKUpdateUtil;
 import org.compiere.minigrid.IDColumn;
 import org.compiere.model.MImage;
+import org.compiere.model.MInfoWindow;
+import org.compiere.model.MStyle;
+import org.compiere.model.MTable;
+import org.compiere.model.PO;
+import org.compiere.model.Query;
+import org.compiere.model.X_AD_StyleLine;
 import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
+import org.compiere.util.Evaluator;
 import org.compiere.util.Language;
 import org.compiere.util.MSort;
 import org.compiere.util.Util;
@@ -82,6 +91,8 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
     private Listbox listBox;
 
 	private EventListener<Event> cellListener;
+
+	private String recordColorStyle = "";
 
 	/**
 	 * Default constructor.
@@ -328,7 +339,7 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 						AImage aImage = new AImage(url);
 						Image image = new Image();
 						image.setContent(aImage);
-						image.setStyle("width: 48px; height: 48px;");
+						image.setStyle("width: 16px; height: 16px; display: block;");
 						listcell.appendChild(image);
 						listcell.setStyle("text-align: center;");
 					} catch (MalformedURLException e) {
@@ -363,6 +374,9 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 					table.removeEventListener(Events.ON_SELECT, this);
 					table.addEventListener(Events.ON_SELECT, this);
 				}
+
+				recordColorStyle = getStatusStyle(listcell, table.getModel().getPO()); //devCoffee #5960
+
 			}
 			else
 			{
@@ -376,8 +390,59 @@ public class WListItemRenderer implements ListitemRenderer<Object>, EventListene
 			listcell.setValue("");
 		}
 
+		//devCoffee #5960
+		if(recordColorStyle != null && recordColorStyle.toLowerCase().startsWith(MStyle.SCLASS_PREFIX)) {
+			String sclass = recordColorStyle.substring(MStyle.SCLASS_PREFIX.length());
+			listcell.setSclass(sclass);
+		} else {
+			listcell.setStyle(recordColorStyle);
+		}
+
 		return listcell;
 	}
+
+	//devCoffee #5960 - Get CSS Style if pass through display logic.
+	private String getStatusStyle(ListCell listcell, PO po) {
+		if(po instanceof MInfoWindow) {
+			if(po.get_ValueAsInt("AD_FieldStyle_ID") != 0 && listcell != null) {
+				try {
+					MTable t = new MTable(Env.getCtx(), po.get_ValueAsInt("AD_Table_ID"), null);
+					PO recordPO = (PO) new Query(Env.getCtx(), t.getTableName(), t.getTableName() + "_ID =" + listcell.getValue(), null).first();
+
+					List<X_AD_StyleLine> lines = new Query(Env.getCtx(), X_AD_StyleLine.Table_Name, "AD_Style_ID = " + po.get_ValueAsInt("AD_FieldStyle_ID"), null).list();
+
+					StringBuilder styleBuilder = new StringBuilder();
+					for (X_AD_StyleLine line : lines)
+					{
+						String inlineStyle = line.getInlineStyle().trim();
+						String displayLogic = line.getDisplayLogic();
+						String theme = line.getTheme();
+						if (!Util.isEmpty(theme)) {
+							if (!ThemeManager.getTheme().equals(theme))
+								continue;
+						}
+						if (!Util.isEmpty(displayLogic))
+						{
+							if (!Evaluator.evaluateLogic(recordPO, displayLogic))
+								continue;
+						}
+						if (styleBuilder.length() > 0 && !(styleBuilder.charAt(styleBuilder.length()-1)==';'))
+							styleBuilder.append("; ");
+
+						styleBuilder.append(inlineStyle);
+					}
+
+					//listcell.setStyle(styleBuilder.toString());
+					return styleBuilder.toString();
+				} catch (Exception e) {
+					throw new AdempiereException(e.getMessage());
+				}
+			}
+		}
+
+		return "";
+	}
+
 
 
 	/**
