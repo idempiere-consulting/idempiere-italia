@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: iDempiere Web Client
 Bundle-SymbolicName: org.adempiere.ui.zk;singleton:=true
-Bundle-Version: 6.1.0.qualifier
+Bundle-Version: 6.2.0.qualifier
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.10))"
 Import-Package: groovy.transform.stc;version="2.4.7",
  javax.annotation,
@@ -14,6 +14,8 @@ Import-Package: groovy.transform.stc;version="2.4.7",
  javax.servlet.http,
  javax.servlet.jsp.resources;version="2.3.0",
  javax.servlet.resources;version="3.1.0",
+ javax.websocket;version="1.1.0",
+ javax.websocket.server;version="1.1.0",
  javax.xml.bind;version="2.3.0",
  net.sf.jasperreports.engine,
  net.sf.jasperreports.engine.export,
@@ -32,6 +34,8 @@ Import-Package: groovy.transform.stc;version="2.4.7",
  org.apache.tools.ant.taskdefs,
  org.compiere.css,
  org.eclipse.core.runtime;version="3.4.0",
+ org.eclipse.jetty.websocket.jsr356;version="9.4.12",
+ org.eclipse.jetty.websocket.jsr356.server;version="9.4.12",
  org.jfree.chart,
  org.jfree.chart.encoders,
  org.jfree.chart.entity,
@@ -155,7 +159,8 @@ Require-Bundle: org.adempiere.base;bundle-version="0.0.0",
  org.apache.commons.io;bundle-version="0.0.0",
  com.itextpdf;bundle-version="0.0.0",
  org.atmosphere.runtime;bundle-version="0.0.0",
- javax.activation;bundle-version="1.1.0"
+ zkwebfragment,
+ com.sun.activation.jakarta.activation;bundle-version="1.2.1"
 Bundle-Activator: org.adempiere.webui.WebUIActivator
 Eclipse-ExtensibleAPI: true
 Web-ContextPath: webui

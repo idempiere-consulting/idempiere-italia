@@ -22,7 +22,7 @@ import org.compiere.util.KeyNamePair;
 
 /** Generated Interface for AD_User
  *  @author iDempiere (generated) 
- *  @version Release 6.1
+ *  @version Release 6.2
  */
 public interface I_AD_User 
 {
@@ -484,6 +484,15 @@ public interface I_AD_User
 	  * If ticked, the menu is automatically expanded
 	  */
 	public String getIsMenuAutoExpand();
+
+    /** Column name IsNoExpire */
+    public static final String COLUMNNAME_IsNoExpire = "IsNoExpire";
+
+	/** Set No Expire	  */
+	public void setIsNoExpire (boolean IsNoExpire);
+
+	/** Get No Expire	  */
+	public boolean isNoExpire();
 
     /** Column name IsNoPasswordReset */
     public static final String COLUMNNAME_IsNoPasswordReset = "IsNoPasswordReset";

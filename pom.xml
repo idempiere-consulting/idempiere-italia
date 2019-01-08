@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.idempiere</groupId>
 		<artifactId>org.idempiere.parent</artifactId>
-		<version>6.1.0-SNAPSHOT</version>
+		<version>6.2.0-SNAPSHOT</version>
 		<relativePath>org.idempiere.parent/pom.xml</relativePath>
 	</parent>
 	<modules>
@@ -45,7 +45,6 @@
 		<module>org.idempiere.fitnesse.server</module>
 		<module>org.idempiere.fitrecorder</module>
 		<module>org.idempiere.hazelcast.service</module>
-		<module>org.idempiere.hazelcast.service.config</module>
 		<module>org.idempiere.ui.zk.selenium</module>
 		<module>org.idempiere.webservices</module>
 		<module>org.idempiere.zk.extra</module>
@@ -55,7 +54,6 @@
 		<module>org.adempiere.replication-feature</module>
 		<module>org.adempiere.pipo-feature</module>
 		<module>org.adempiere.replication.server-feature</module>
-		<module>org.adempiere.sdk-feature</module>
 		<module>org.adempiere.server-feature</module>
 		<module>org.adempiere.target.platform-feature</module>
 		<module>org.adempiere.ui.swing-feature</module>

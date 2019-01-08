@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.idempiere</groupId>
 		<artifactId>org.idempiere.parent</artifactId>
-		<version>6.1.0-SNAPSHOT</version>
+		<version>6.2.0-SNAPSHOT</version>
 		<relativePath>../org.idempiere.parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>org.adempiere.base</artifactId>
@@ -12,19 +12,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-compiler-plugin</artifactId>
-				<configuration>
-					<!-- https://bugs.eclipse.org/bugs/show_bug.cgi?id=367431 -->
-					<compilerArgs>
-						<arg>-warn:+forbidden</arg>
-		      			<arg>--add-exports</arg>
-		      			<arg>java.sql.rowset/com.sun.rowset=ALL-UNNAMED</arg>
-					</compilerArgs>
-				</configuration>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

@@ -2,7 +2,7 @@
 <feature
       id="org.idempiere.zk.feature"
       label="Materialize zk osgi libary"
-      version="6.1.0.qualifier"
+      version="6.2.0.qualifier"
       provider-name="iDempiere Community">
 
    <description url="http://www.example.com/description">
@@ -96,6 +96,13 @@
 
    <plugin
          id="org.apache.commons.io"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="zkwebfragment"
          download-size="0"
          install-size="0"
          version="0.0.0"
