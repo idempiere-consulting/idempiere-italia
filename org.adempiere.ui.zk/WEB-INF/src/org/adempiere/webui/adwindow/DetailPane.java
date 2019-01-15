@@ -69,6 +69,8 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
 	private static final String BTN_NEW_ID = "BtnNew";
 	
 	private static final String BTN_SAVE_ID = "BtnSave";
+	
+	private static final String BTN_COPY_ID = "BtnCopy";
 
 	private static final String TABBOX_ONSELECT_ATTRIBUTE = "detailpane.tabbox.onselect";
 
@@ -83,6 +85,7 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
 	private static final String NEW_IMAGE = "images/New16.png";
 	private static final String PROCESS_IMAGE = "images/Process16.png";
 	private static final String SAVE_IMAGE = "images/Save16.png";
+	private static final String COPY_IMAGE = "images/Copy16.png";
 
 
 	private ToolBarButton btnNew;
@@ -110,6 +113,8 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
 	public static final String ON_EDIT_EVENT = "onEdit";
 	
 	public static final String ON_SAVE_EVENT = "onSave";
+	
+	public static final String ON_COPY_EVENT = "onCopy";
 	
     private HashMap<String, ToolBarButton> buttons = new HashMap<String, ToolBarButton>();
     private List<ToolbarCustomButton> toolbarCustomButtons = new ArrayList<ToolbarCustomButton>();
@@ -289,6 +294,21 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
         buttons.put(BTN_NEW_ID.substring(3, BTN_NEW_ID.length()), btnNew);
 		
 		ToolBarButton button = new ToolBarButton();
+		
+		button = new ToolBarButton();
+		if (ThemeManager.isUseFontIconForImage())
+			button.setIconSclass("z-icon-Delete");
+		else
+			button.setImage(ThemeManager.getThemeResource(COPY_IMAGE));
+		button.setId(BTN_COPY_ID);
+		button.addEventListener(Events.ON_CLICK, new EventListener<Event>() {
+			@Override
+			public void onEvent(Event event) throws Exception {
+				onCopy();
+			}
+		});
+		button.setTooltiptext(Util.cleanAmp(Msg.getMsg(Env.getCtx(), "Copy")));
+        buttons.put(BTN_COPY_ID.substring(3, BTN_COPY_ID.length()), button);
 		
 		button = new ToolBarButton();
 		if (ThemeManager.isUseFontIconForImage())
@@ -705,6 +725,9 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
         		ToolBarButton btn = (ToolBarButton) c;
         		if (BTN_NEW_ID.equals(btn.getId())) {
         			btn.setDisabled(!enableNew);
+        		}
+        		if (BTN_COPY_ID.equals(btn.getId())) {
+            		btn.setDisabled(!enableNew);
         		} else if (BTN_DELETE_ID.equals(btn.getId())) {
         			btn.setDisabled(!enableDelete);
         		} else if (BTN_EDIT_ID.equals(btn.getId())) {
@@ -854,6 +877,11 @@ public class DetailPane extends Panel implements EventListener<Event>, IdSpace {
 
 	public void onNew() throws Exception {
 		Event openEvent = new Event(ON_NEW_EVENT, DetailPane.this);
+		eventListener.onEvent(openEvent);
+	}
+	
+	public void onCopy() throws Exception {
+		Event openEvent = new Event(ON_COPY_EVENT, DetailPane.this);
 		eventListener.onEvent(openEvent);
 	}
 

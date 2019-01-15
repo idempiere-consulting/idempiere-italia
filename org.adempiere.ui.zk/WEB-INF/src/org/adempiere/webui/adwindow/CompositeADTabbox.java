@@ -155,6 +155,9 @@ public class CompositeADTabbox extends AbstractADTabbox
 				else if (DetailPane.ON_DELETE_EVENT.equals(event.getName())) {
 					onDelete();
 				}
+				else if (DetailPane.ON_COPY_EVENT.equals(event.getName())) {
+					getSelectedDetailADTabpanel().getGridTab().dataNew(true);
+				}
 			}
 
 			private void onDelete() {
@@ -213,7 +216,8 @@ public class CompositeADTabbox extends AbstractADTabbox
 						}
 					});
 				}
-			}			
+			}
+			
 		});
     	
     	return detailPane;
