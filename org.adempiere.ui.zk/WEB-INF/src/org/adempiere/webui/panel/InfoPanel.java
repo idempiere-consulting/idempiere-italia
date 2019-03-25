@@ -507,8 +507,8 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	 */
 	public void setStatusSelected (boolean updateSummary)
 	{
-		if (!p_multipleSelection)
-			return;
+		//if (!p_multipleSelection)
+			//return;
 		
 		// recreate the summary map based on layout
 		if (updateSummary)
@@ -604,8 +604,9 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 
 		// verify summary fields and show the amount
 		StringBuilder statusLabel = new StringBuilder();
+		boolean summaryOnHeader = MSysConfig.getBooleanValue(MSysConfig.INFO_WINDOW_SHOW_SUMMARY_ON_HEADER, true, Env.getAD_Client_ID(Env.getCtx()));
 
-		if (!MSysConfig.getBooleanValue(MSysConfig.INFO_WINDOW_SHOW_SUMMARY_ON_HEADER, true))
+		if (!summaryOnHeader)
 		{
 			String oldStatus = statusBar.getStatusLine();
 			if (oldStatus != null && oldStatus.indexOf(SUMMARY_SIMBOL) > 0)
@@ -627,7 +628,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 					label = label.substring(0, label.indexOf(SUMMARY_SIMBOL));
 
 				// decide if the amount will be displayed on header or status line
-				if (!MSysConfig.getBooleanValue(MSysConfig.INFO_WINDOW_SHOW_SUMMARY_ON_HEADER, true))
+				if (!summaryOnHeader)
 				{
 					statusLabel.append(label).append(": ").append(retValue).append(" ");
 				}
@@ -638,7 +639,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 			}
 		}
 
-		if (!MSysConfig.getBooleanValue(MSysConfig.INFO_WINDOW_SHOW_SUMMARY_ON_HEADER, true))
+		if (!summaryOnHeader)
 			statusBar.setStatusLine(statusLabel.toString());
 
 		String msg = Msg.getMsg(Env.getCtx(), "IWStatusSelected", new Object [] {String.valueOf(selectedCount)});
