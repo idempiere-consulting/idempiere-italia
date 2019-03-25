@@ -192,6 +192,7 @@ public class MSysConfig extends X_AD_SysConfig
     public static final String ZK_THEME_USE_FONT_ICON_FOR_IMAGE = "ZK_THEME_USE_FONT_ICON_FOR_IMAGE";
     public static final String ZK_THEME = "ZK_THEME";
     public static final String ZOOM_ACROSS_QUERY_TIMEOUT = "ZOOM_ACROSS_QUERY_TIMEOUT";
+    public static final String INFO_WINDOW_SHOW_SUMMARY_ON_HEADER = "INFO_WINDOW_SHOW_SUMMARY_ON_HEADER";
 
 	/**
 	 * 	Standard Constructor
