@@ -137,11 +137,26 @@ public abstract class ADForm extends Window implements EventListener<Event>, IHe
         return openForm(adFormID, null, null);
 	}
 	
+    /**
+     * Open a form base on it's ID
+     *
+     * @param adFormID
+     * @param gridTab
+     * @return
+     */
 	public static ADForm openForm (int adFormID, GridTab gridTab)
 	{
         return openForm(adFormID, gridTab, null);
     }
 
+    /**
+     * Open a form base on it's ID and a Process Info parameters
+     *
+     * @param adFormID
+     * @param gridTab
+     * @param pi
+     * @return
+     */
     public static ADForm openForm (int adFormID, GridTab gridTab, ProcessInfo pi)
     {
 		ADForm form;
