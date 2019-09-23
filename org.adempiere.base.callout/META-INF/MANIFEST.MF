@@ -10,6 +10,7 @@ Eclipse-RegisterBuddy: org.adempiere.base
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
 Export-Package: org.compiere.model
-Bundle-ClassPath: .
+Bundle-ClassPath: idIta.modification.org.adempiere.base.callout.jar,
+ .
 Automatic-Module-Name: org.adempiere.base.callout
 Bundle-Vendor: iDempiere Community
