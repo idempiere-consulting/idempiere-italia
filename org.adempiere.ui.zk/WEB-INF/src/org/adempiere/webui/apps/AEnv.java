@@ -291,7 +291,7 @@ public final class AEnv
 					CCache<Integer,GridWindowVO> cache = windowCache.get(sessionID);
 					if (cache == null)
 					{
-						cache = new CCache<Integer, GridWindowVO>(I_AD_Window.Table_Name, 10);
+						cache = new CCache<Integer, GridWindowVO>(I_AD_Window.Table_Name, I_AD_Window.Table_Name+"|GridWindowVO|Session", 10);
 						windowCache.put(sessionID, cache);
 					}
 					cache.put(AD_Window_ID, mWindowVO);
@@ -462,7 +462,11 @@ public final class AEnv
 		if (query == null || query.getTableName() == null || query.getTableName().length() == 0)
 			return;
 		
-		int AD_Window_ID = Env.getZoomWindowID(query);
+		int AD_Window_ID = query.getZoomWindowID();
+
+		if (AD_Window_ID <= 0)
+			AD_Window_ID = Env.getZoomWindowID(query);
+
 		//  Nothing to Zoom to
 		if (AD_Window_ID == 0)
 			return;
