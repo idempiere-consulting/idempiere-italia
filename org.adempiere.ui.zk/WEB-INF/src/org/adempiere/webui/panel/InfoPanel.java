@@ -51,7 +51,6 @@ import org.adempiere.webui.apps.WProcessCtl;
 import org.adempiere.webui.component.Button;
 import org.adempiere.webui.component.Combobox;
 import org.adempiere.webui.component.ConfirmPanel;
-import org.adempiere.webui.component.ListHeader;
 import org.adempiere.webui.component.ListModelTable;
 import org.adempiere.webui.component.ProcessInfoDialog;
 import org.adempiere.webui.component.WListItemRenderer;
@@ -90,7 +89,6 @@ import org.compiere.util.Msg;
 import org.compiere.util.Trx;
 import org.compiere.util.ValueNamePair;
 import org.zkoss.zk.au.out.AuEcho;
-import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -132,7 +130,6 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	protected Map<String, WEditor> editorMap = new HashMap<String, WEditor>();
 	protected final static String PROCESS_ID_KEY = "processId";
 	protected final static String ON_RUN_PROCESS = "onRunProcess";
-	protected final static String SUMMARY_SIMBOL = " Σ ";
 	// attribute key of info process
 	protected final static String ATT_INFO_PROCESS_KEY = "INFO_PROCESS";
 	protected int pageSize;
@@ -180,8 +177,6 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	protected boolean isRequeryByRunSuccessProcess = false;
 	
 	
-	protected HashMap<Integer,BigDecimal> summary = new HashMap<Integer,BigDecimal>();
-
     public static InfoPanel create (int WindowNo,
             String tableName, String keyColumn, String value,
             boolean multiSelection, String whereClause)
@@ -510,32 +505,13 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	 *	Set Status DB
 	 *  @param text text
 	 */
-	public void setStatusSelected (boolean updateSummary)
+	public void setStatusSelected ()
 	{
-		//if (!p_multipleSelection)
-			//return;
+		if (!p_multipleSelection)
+			return;
 		
-		// recreate the summary map based on layout
-		if (updateSummary)
-		{
-			summary = new HashMap<Integer,BigDecimal>();
-
-			for (int i = 0; i < p_layout.length; i++)
-			{
-				GridField field = p_layout[i].getGridField();
-				if (field == null)
-					continue;
-
-				if (DisplayType.isNumeric(field.getDisplayType()) && field.isSummarized())
-				{
-					summary.put(i, Env.ZERO);
-				}
-			}
-		}
-
 		int selectedCount = recordSelectedData.size();
 		
-		BigDecimal sum ;
 		for (int rowIndex = 0; rowIndex < contentPanel.getModel().getRowCount(); rowIndex++){			
 			Integer keyCandidate = getColumnValue(rowIndex);
 			
@@ -545,108 +521,14 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 			if (contentPanel.getModel().isSelected(candidateRecord)){
 				if (!recordSelectedData.containsKey(keyCandidate)){
 					selectedCount++;
-
-					// add active page values to summary map
-					if (updateSummary)
-					{
-						Integer[] idxs = new Integer[summary.size()];
-						summary.keySet().toArray(idxs);
-						for (Integer idx : idxs)
-						{
-							sum = summary.get(idx);
-							summary.remove(idx);
-							Object value = contentPanel.getValueAt(rowIndex, idx);
-							if (value != null)
-								sum = sum.add((BigDecimal) value);
-							summary.put(idx, sum);
-
-						}
-					}
 				}
 			}else{
 				if (recordSelectedData.containsKey(keyCandidate)){// unselected record
 					selectedCount--;
-					if (updateSummary)
-					{
-						// subtract active page values to summary map
-						Integer[] idxs = new Integer[summary.size()];
-						summary.keySet().toArray(idxs);
-						for (Integer idx : idxs)
-						{
-							sum = summary.get(idx);
-							summary.remove(idx);
-							Object value = contentPanel.getValueAt(rowIndex, idx);
-							if (value != null)
-								sum = sum.subtract((BigDecimal) value);
-							summary.put(idx, sum);
-
-						}
-					}
-
 				}
 			}
 		}	
 		
-		// add recordSelectedData values to summary map
-		if (updateSummary)
-		{
-			for (List<Object> o : recordSelectedData.values())
-			{
-				Integer[] idxs = new Integer[summary.size()];
-				summary.keySet().toArray(idxs);
-				for (Integer idx : idxs)
-				{
-					sum = summary.get(idx);
-					summary.remove(idx);
-					Object value = o.get(idx);
-					if (value != null)
-						sum = sum.add((BigDecimal) value);
-					summary.put(idx, sum);
-
-				}
-			}
-		}
-
-		// verify summary fields and show the amount
-		StringBuilder statusLabel = new StringBuilder();
-		boolean summaryOnHeader = MSysConfig.getBooleanValue(MSysConfig.INFO_WINDOW_SHOW_SUMMARY_ON_HEADER, true, Env.getAD_Client_ID(Env.getCtx()));
-
-		if (!summaryOnHeader)
-		{
-			String oldStatus = statusBar.getStatusLine();
-			if (oldStatus != null && oldStatus.indexOf(SUMMARY_SIMBOL) > 0)
-				oldStatus = oldStatus.substring(0, oldStatus.indexOf(SUMMARY_SIMBOL));
-			statusLabel.append(oldStatus);
-			statusLabel.append(SUMMARY_SIMBOL);
-		}
-
-		for (Component h : contentPanel.getHeads())
-		{
-			for (Integer idx : summary.keySet())
-			{
-				BigDecimal amt = summary.get(idx);
-				String retValue = "";
-				retValue = DisplayType.getNumberFormat(p_layout[idx].getGridField().getDisplayType()).format(amt);
-
-				String label = ((ListHeader) h.getChildren().get(idx)).getLabel();
-				if (label !=null & label.indexOf(SUMMARY_SIMBOL) > 0)
-					label = label.substring(0, label.indexOf(SUMMARY_SIMBOL));
-
-				// decide if the amount will be displayed on header or status line
-				if (!summaryOnHeader)
-				{
-					statusLabel.append(label).append(": ").append(retValue).append(" ");
-				}
-				else
-				{
-					((ListHeader) h.getChildren().get(idx)).setLabel(label + SUMMARY_SIMBOL + retValue);
-				}
-			}
-		}
-
-		if (!summaryOnHeader)
-			statusBar.setStatusLine(statusLabel.toString());
-
 		String msg = Msg.getMsg(Env.getCtx(), "IWStatusSelected", new Object [] {String.valueOf(selectedCount)});
 		statusBar.setSelectedRowNumber(msg);
 	}	//	setStatusDB
@@ -905,7 +787,6 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
     			model.setSorter(this);
 	            model.addTableModelListener(this);
 	            model.setMultiple(p_multipleSelection);
-	            model.setPO(infoWindow); //devCoffee #5960
 	            contentPanel.setData(model, null);
 
 	            pageNo = 0;
@@ -922,7 +803,6 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	            model.setSorter(this);
 	            model.addTableModelListener(this);
 	            model.setMultiple(p_multipleSelection);
-	            model.setPO(infoWindow); //devCoffee #5960
 	            contentPanel.setData(model, null);
         	}
         }
@@ -938,12 +818,11 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
         	model.setSorter(this);
             model.addTableModelListener(this);
             model.setMultiple(p_multipleSelection);
-            model.setPO(infoWindow); //devCoffee #5960
             contentPanel.setData(model, null);
         }
         restoreSelectedInPage();
         updateStatusBar (m_count);
-        setStatusSelected (false);
+        setStatusSelected ();
         addDoubleClickListener();
         
         if (paging != null && paging.getParent() == null)
@@ -1934,7 +1813,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
             }
             else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_SELECT))
             {
-            	setStatusSelected (true);
+            	setStatusSelected ();
             	
             	SelectEvent<?, ?> selectEvent = (SelectEvent<?, ?>) event;
             	if (selectEvent.getReference() != null && selectEvent.getReference() instanceof Listitem)
@@ -2075,7 +1954,6 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
         			model.setSorter(this);
     	            model.addTableModelListener(this);
     	            model.setMultiple(p_multipleSelection);
-    	            model.setPO(infoWindow); //devCoffee #5960
     	            contentPanel.setData(model, null);
     	            restoreSelectedInPage();
     				//contentPanel.setSelectedIndex(0);
