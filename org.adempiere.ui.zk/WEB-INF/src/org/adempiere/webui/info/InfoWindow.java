@@ -604,7 +604,6 @@ public class InfoWindow extends InfoPanel implements ValueChangeListener, EventL
 				String help = infoColumn.get_Translation("Help");
 				vo.Help = help != null ? help : "";
 				vo.AD_FieldStyle_ID = infoColumn.getAD_FieldStyle_ID();
-				vo.IsSummarized = infoColumn.get_ValueAsBoolean("IsSummarized");
 				GridField gridField = new GridField(vo);
 				gridFields.add(gridField);
 			}
@@ -2071,7 +2070,6 @@ public class InfoWindow extends InfoPanel implements ValueChangeListener, EventL
 		String help = infoColumn.get_Translation("Help");
 		vo.Help = help != null ? help : "";
 		vo.AD_FieldStyle_ID = infoColumn.getAD_FieldStyle_ID();
-		vo.IsSummarized = infoColumn.get_ValueAsBoolean("IsSummarized");
 		GridField gridField = new GridField(vo);
 
 		return gridField;
