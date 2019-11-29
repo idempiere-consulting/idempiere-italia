@@ -123,7 +123,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 7893447773574337316L;
+	private static final long serialVersionUID = 3761627143274259211L;
 	private final static int DEFAULT_PAGE_SIZE = 100;
 	private final static int DEFAULT_PAGE_PRELOAD = 4;
 	protected List<Button> btProcessList = new ArrayList<Button>();
@@ -254,7 +254,7 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
 			if (p_whereClause.length() == 0)
 				log.log(Level.SEVERE, "Cannot parse context= " + whereClause);
 		}
-
+		
 		pageSize = MSysConfig.getIntValue(MSysConfig.ZK_PAGING_SIZE, DEFAULT_PAGE_SIZE, Env.getAD_Client_ID(Env.getCtx()));
 		
 		init();
@@ -1820,13 +1820,11 @@ public abstract class InfoPanel extends Window implements EventListener<Event>, 
             	{
             		Listitem m_lastOnSelectItem = (Listitem) selectEvent.getReference();
             		m_lastSelectedIndex = m_lastOnSelectItem.getIndex();
-           		}
-
+            		}
             	enableButtons();
-            	
             }else if (event.getTarget() == contentPanel && event.getName().equals("onAfterRender")){           	
-            	//IDEMPIERE-1334 at this event selected item from listBox and model is sync
-            	enableButtons();
+        	//IDEMPIERE-1334 at this event selected item from listBox and model is sync
+        	enableButtons();
             }
             else if (event.getTarget() == contentPanel && event.getName().equals(Events.ON_DOUBLE_CLICK))
             {

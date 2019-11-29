@@ -27,7 +27,6 @@ import java.util.Vector;
 
 import org.adempiere.webui.event.WTableModelEvent;
 import org.adempiere.webui.event.WTableModelListener;
-import org.compiere.model.PO;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.event.ListDataEvent;
@@ -53,8 +52,6 @@ public class ListModelTable extends ListModelList<Object> implements Sortable<Ob
 	private int m_noColumns;
 
 	private Sortable<Object> sorter = null;
-
-	private PO po; //devCoffee #5960
 
 	/**
 	 * Default constructor.
@@ -401,21 +398,5 @@ public class ListModelTable extends ListModelList<Object> implements Sortable<Ob
 	public void setSorter(Sortable<Object> lme)
 	{
 		sorter = lme;
-	}
-
-	/**
-	 * devCoffee #5960
-	 * @param po
-	 */
-	public void setPO(PO po) {
-		this.po = po;
-}
-
-	/**
-	 * devCoffee #5960
-	 * @return
-	 */
-	public PO getPO() {
-		return po;
 	}
 }
