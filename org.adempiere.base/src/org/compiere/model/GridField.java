@@ -2536,11 +2536,6 @@ public class GridField
 		m_vo.Placeholder = placeholder;
 	}
 
-	public boolean isSummarized()
-	{
-		return m_vo.IsSummarized;
-	}
-
 	public GridField clone(Properties ctx)  
 	{
 		try {
